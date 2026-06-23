@@ -1,0 +1,13 @@
+{
+  "main": "pi-server.cjs",
+  "output": "sea-prep.blob",
+  "disableExperimentalSEAWarning": true,
+  "assets": {
+    "dist.blob": "dist.blob",
+    "dist.version": "dist.version",
+    "manifest.xml": "manifest.xml",
+    "cert.pem": "cert.pem",
+    "key.pem": "key.pem",
+    "ExcelWorkbookWithTaskPane.xlsx": "ExcelWorkbookWithTaskPane.xlsx"
+  }
+}
