@@ -1,0 +1,1 @@
+function e(e){return typeof e==`object`&&!!e}function t(t){if(!e(t))return!1;for(let e of Object.values(t))if(typeof e!=`string`)return!1;return!0}function n(){let e=globalThis.__PI_TEST_RAW_MARKDOWN_GLOB;return typeof e==`function`?e:null}function r(e,r){let i=n();if(!i)return{};let a=i(e,r);return t(a)?a:{}}export{r as t};
