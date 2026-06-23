@@ -7,6 +7,7 @@
 ---
 
 ## ci.yml
+
 ```yaml
 name: ci
 
@@ -70,6 +71,7 @@ jobs:
 ```
 
 ## build-windows.yml
+
 ```yaml
 name: build-windows
 
@@ -130,4 +132,70 @@ jobs:
             release/UIH_AI_Base_PI-manifest.xml
           if-no-files-found: warn
 
+```
+
+---
+
+# EXE 分卷下载与恢复
+
+由于 GitHub Contents API 不支持大于 ~100 MB 的单文件,而本仓库的 UIH_AI_Base_PI-v1.0.0.exe 为 82.78 MB,GitHub Releases API 单次上传也存在网络中断风险,
+因此本仓库将 EXE 切成 4 个 21 MB 的分卷上传到 GitHub Releases。
+
+## 元信息
+
+- **原始文件**: UIH_AI_Base_PI-v1.0.0.exe
+- **原始大小**: 86797824 bytes (~82.78 MB)
+- **原始 SHA-256**: `97DA2DC2EDD66D67D4009FE12F6636B8E29D79FFA26AD7B762FFA5B35E83AA97`
+- **下载**: https://github.com/bingjian999/uih-ExcelV1/releases/tag/v1.0.0
+
+## 分卷清单
+
+- UIH_AI_Base_PI-v1.0.0.exe.7z.{0:D3}  (21699456 bytes)  SHA-256: `f1e69bc7fc3bbf50b66c0010a1f85da02eb4aa8a1f3ebf00be4623101c38b72a`
+- UIH_AI_Base_PI-v1.0.0.exe.7z.{0:D3}  (21699456 bytes)  SHA-256: `ee6f6f96438113189b915b6f15187572c8fd641d0a287f08a8531255c400489b`
+- UIH_AI_Base_PI-v1.0.0.exe.7z.{0:D3}  (21699456 bytes)  SHA-256: `011163cf319542779a41304defa0c60fc8814da259ec31107c05f2594c16341d`
+- UIH_AI_Base_PI-v1.0.0.exe.7z.{0:D3}  (21699456 bytes)  SHA-256: `46f9a4327a9e939edfd1ec35eb69395eb34ee8c06a4c7d065f5dcc3f85ab7091`
+
+
+## Windows 恢复命令 (PowerShell)
+
+```powershell
+$dest = "C:\Users\bingjian.wang\Downloads\UIH_AI_Base_PI-v1.0.0.exe"
+$base = "https://github.com/bingjian999/uih-ExcelV1/releases/download/v1.0.0/UIH_AI_Base_PI-v1.0.0.exe.7z."
+
+# 下载 4 个分卷
+for ($i = 1; $i -le 4; $i++) {
+  $part = $base + ($i).ToString('D3')
+  Write-Host "Downloading $part..."
+  Invoke-WebRequest -Uri $part -OutFile "$env:TEMP\part$($i).bin"
+}
+
+# 合并
+$out = New-Object System.IO.FileStream($dest, [System.IO.FileMode]::Create)
+for ($i = 1; $i -le 4; $i++) {
+  $in = [System.IO.File]::OpenRead("C:\Users\BINGJI~1.WAN\AppData\Local\Temp\part$($i).bin")
+  $in.CopyTo($out)
+  $in.Close()
+}
+$out.Close()
+
+# 校验 SHA-256
+$expected = "97DA2DC2EDD66D67D4009FE12F6636B8E29D79FFA26AD7B762FFA5B35E83AA97"
+$actual = (Get-FileHash $dest -Algorithm SHA256).Hash
+if ($expected -eq $actual) { Write-Host "✓ SHA-256 OK" } else { Write-Host "✗ SHA-256 MISMATCH" -ForegroundColor Red }
+
+# 清理
+Remove-Item "C:\Users\BINGJI~1.WAN\AppData\Local\Temp\part*.bin"
+```
+
+## Linux / macOS 恢复命令 (curl + cat)
+
+```bash
+BASE="https://github.com/bingjian999/uih-ExcelV1/releases/download/v1.0.0/UIH_AI_Base_PI-v1.0.0.exe.7z"
+curl -fL "\.001" -o part1.bin
+curl -fL "\.002" -o part2.bin
+curl -fL "\.003" -o part3.bin
+curl -fL "\.004" -o part4.bin
+cat part1.bin part2.bin part3.bin part4.bin > UIH_AI_Base_PI-v1.0.0.exe
+sha256sum UIH_AI_Base_PI-v1.0.0.exe  # 应等于 97DA2DC2EDD66D67D4009FE12F6636B8E29D79FFA26AD7B762FFA5B35E83AA97
+rm part*.bin
 ```
