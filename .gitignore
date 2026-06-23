@@ -1,30 +1,19 @@
-# Build / pack 临时产物
-build/
-dist/
+# UIH Excel Tools - .gitignore
+
+# ============================================================================
+# 1) 不入版本控制的内容
+# ============================================================================
+
+# Node 依赖
 node_modules/
-*.log
 
-# SEA 中间产物
-sea-prep.blob
-dist.blob
-dist.version
-
-# 证书私钥（生产环境请用 GitHub Secrets）
-cert.pem
-key.pem
-
-# 运行时缓存
+# 运行时缓存（避免推送用户数据）
 .cache/
 UIH_AI_Base_PI/
-!examples/
 
-# 调试输出
-exe-output*.txt
-exe-error*.txt
-verify-result.txt
-3003-context.txt
-3003-full-context.txt
-3003-raw.txt
+# PowerShell 临时脚本
+*.ps1.tmp
+gen-icons.ps1
 
 # OS
 .DS_Store
@@ -38,19 +27,37 @@ desktop.ini
 *.swo
 *~
 
-# Node
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-.npm/
+# ============================================================================
+# 2) 不忽略的（关键：保留 dist/ 给开发者参考）
+# ============================================================================
+# 重要: 我们的 dist/ 是 vite 构建产物,提交到仓库后,
+# 别人 clone 后可以立刻知道最终产物的样子,不用重新构建
+# 但他们仍需要 npm install + vite build 来调试前端代码
+#
+# 因此**不**把 dist/ 加入 .gitignore
+# !dist/
 
-# 临时 PowerShell 脚本
-*.ps1.tmp
+# SEA 中间产物（中间文件,不提交）
+# build/ 是构建中间产物目录
+build/
+
+# 临时 PowerShell 文件
 gen-icons.ps1
+
+# 调试输出
+exe-output*.txt
+exe-error*.txt
+verify-result.txt
+3003-context.txt
+3003-full-context.txt
+3003-raw.txt
+
+# 私钥（开发用证书,不入库）
+cert.pem
+key.pem
 
 # 任务窗格打包临时
 .blob-tmp/
 
-# LFS 锁文件（实际使用 LFS 跟踪的大文件已在 .gitattributes 中标记）
+# LFS lock file
 *.lfs
