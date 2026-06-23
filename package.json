@@ -1,0 +1,42 @@
+{
+  "name": "uih-excel-tools",
+  "version": "1.0.0",
+  "private": true,
+  "description": "联影AI_Base_PI - 单文件 EXE 部署的本地化 Excel AI 助手",
+  "main": "src/pi-server.cjs",
+  "scripts": {
+    "start": "node src/pi-server.cjs",
+    "dev:mock": "node scripts/mock-model-server.cjs",
+    "test:ai": "node scripts/test-ai.cjs",
+    "build:blob": "node scripts/build-blob.cjs dist/ build/dist.blob",
+    "build:sea": "node --experimental-sea-config sea-config.json",
+    "build:inject": "node scripts/inject-sea.cjs release/UIH_AI_Base_PI-v1.0.0.exe build/sea-prep.blob",
+    "icons": "node scripts/gen-icons.cjs"
+  },
+  "keywords": [
+    "excel",
+    "office-js",
+    "add-in",
+    "ai",
+    "node-sea",
+    "uih",
+    "internal"
+  ],
+  "author": "联影 AI 工具链团队",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "dependencies": {
+    "node-sea-prep": "*"
+  },
+  "devDependencies": {
+    "postject": "^1.0.0-alpha.6"
+  },
+  "files": [
+    "src/",
+    "scripts/",
+    "examples/",
+    "docs/"
+  ]
+}
