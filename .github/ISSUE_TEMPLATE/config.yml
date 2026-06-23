@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 使用文档
+    url: https://github.com/<OWNER>/UIH-Excel-V1/blob/main/docs/UIH-ExcelTools-UserGuide.html
+    about: 完整的中文使用手册
+  - name: 开发总结
+    url: https://github.com/<OWNER>/UIH-Excel-V1/blob/main/docs/UIH-DevSummary.html
+    about: 架构、决策、错误记录、更新指南
