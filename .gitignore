@@ -1,0 +1,56 @@
+# Build / pack 临时产物
+build/
+dist/
+node_modules/
+*.log
+
+# SEA 中间产物
+sea-prep.blob
+dist.blob
+dist.version
+
+# 证书私钥（生产环境请用 GitHub Secrets）
+cert.pem
+key.pem
+
+# 运行时缓存
+.cache/
+UIH_AI_Base_PI/
+!examples/
+
+# 调试输出
+exe-output*.txt
+exe-error*.txt
+verify-result.txt
+3003-context.txt
+3003-full-context.txt
+3003-raw.txt
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE / 编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Node
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.npm/
+
+# 临时 PowerShell 脚本
+*.ps1.tmp
+gen-icons.ps1
+
+# 任务窗格打包临时
+.blob-tmp/
+
+# LFS 锁文件（实际使用 LFS 跟踪的大文件已在 .gitattributes 中标记）
+*.lfs
