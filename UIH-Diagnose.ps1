@@ -1,120 +1,120 @@
 #requires -Version 5.1
 <#
-  UIH-Diagnose.ps1
-  UIH Excel Tools 远程诊断脚本
-  在出问题的电脑上运行,收集诊断信息后发回。
+  UIH-Diagnose.ps1  (ASCII-safe version)
+  UIH Excel Tools remote diagnostic script.
+  Run on the problematic machine, send back the output.
 #>
 
 $ErrorActionPreference = 'Continue'
 Write-Host "=========================================="
-Write-Host "  UIH Excel Tools 诊断脚本"
+Write-Host "  UIH Excel Tools Diagnostic Script"
 Write-Host "  $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
 Write-Host "=========================================="
 Write-Host ""
 
-# 1. 系统信息
-Write-Host "=== 1. 系统信息 ==="
-Write-Host "  计算机: $env:COMPUTERNAME"
-Write-Host "  用户: $env:USERNAME"
-Write-Host "  OS: $((Get-CimInstance Win32_OperatingSystem).Caption)"
-Write-Host "  是否管理员: $([Security.Principal.WindowsPrincipal]::new([Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))"
+# 1. System info
+Write-Host "=== 1. System Info ==="
+Write-Host "  Computer:  $env:COMPUTERNAME"
+Write-Host "  User:      $env:USERNAME"
+Write-Host "  OS:        $((Get-CimInstance Win32_OperatingSystem).Caption)"
+$isAdmin = ([Security.Principal.WindowsPrincipal]::new([Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+Write-Host "  IsAdmin:   $isAdmin"
 Write-Host ""
 
-# 2. EXE 进程
-Write-Host "=== 2. EXE 进程 ==="
-$procs = Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.ProcessName -match 'UIH|联影|node|Base_PI' }
+# 2. EXE process
+Write-Host "=== 2. EXE Process ==="
+$procs = Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.ProcessName -match 'UIH|node|Base_PI' }
 if ($procs) {
   $procs | ForEach-Object {
     Write-Host "  PID=$($_.Id)  Name=$($_.ProcessName)  Path=$($_.Path)"
   }
 } else {
-  Write-Host "  未找到 EXE 进程 (可能未启动)"
+  Write-Host "  [NOT FOUND] No EXE process running"
 }
 Write-Host ""
 
-# 3. 端口监听
-Write-Host "=== 3. 端口监听 ==="
+# 3. Port listening
+Write-Host "=== 3. Port Listening ==="
 foreach ($port in @(3000, 3003)) {
   $r = Test-NetConnection -ComputerName localhost -Port $port -WarningAction SilentlyContinue -InformationLevel Quiet
-  Write-Host "  localhost:$port  $(if ($r) {'✅ 在听'} else {'❌ 未监听'})"
+  if ($r) {
+    Write-Host "  localhost:$port  [OK] listening"
+  } else {
+    Write-Host "  localhost:$port  [FAIL] not listening"
+  }
 }
 Write-Host ""
 
-# 4. 证书检查
-Write-Host "=== 4. 证书检查 ==="
+# 4. Certificate check
+Write-Host "=== 4. Certificate Check ==="
+Write-Host "  --- LocalMachine\Root ---"
 $certs = Get-ChildItem Cert:\LocalMachine\Root -ErrorAction SilentlyContinue | Where-Object { $_.Subject -match 'localhost|UIH|PI' }
 if ($certs) {
   $certs | ForEach-Object {
-    Write-Host "  Subject: $($_.Subject)"
+    Write-Host "  Subject:    $($_.Subject)"
     Write-Host "  Thumbprint: $($_.Thumbprint)"
-    Write-Host "  NotAfter: $($_.NotAfter)"
+    Write-Host "  NotAfter:   $($_.NotAfter)"
     Write-Host "  ---"
   }
 } else {
-  Write-Host "  ❌ LocalMachine\Root 中没有 localhost/UIH/PI 证书"
-  Write-Host "  → 需要以管理员身份重新运行 EXE"
+  Write-Host "  [FAIL] No localhost/UIH/PI cert in LocalMachine\Root"
+  Write-Host "  -> Need to run EXE as Administrator"
 }
 Write-Host ""
 
+Write-Host "  --- CurrentUser\Root ---"
 $certsUser = Get-ChildItem Cert:\CurrentUser\Root -ErrorAction SilentlyContinue | Where-Object { $_.Subject -match 'localhost|UIH|PI' }
 if ($certsUser) {
-  Write-Host "  CurrentUser\Root 中有: $($certsUser.Count) 个"
+  Write-Host "  Found $($certsUser.Count) cert(s) in CurrentUser\Root"
 } else {
-  Write-Host "  CurrentUser\Root 中没有 localhost/UIH/PI 证书"
+  Write-Host "  [NONE] No localhost/UIH/PI cert in CurrentUser\Root"
 }
 Write-Host ""
 
-# 5. dist 目录
-Write-Host "=== 5. dist 目录 ==="
+# 5. dist directory
+Write-Host "=== 5. dist Directory ==="
 $distDir = "$env:LOCALAPPDATA\UIH_AI_Base_PI\dist"
 if (Test-Path $distDir) {
   $count = (Get-ChildItem $distDir -Recurse -File | Measure-Object).Count
   $size = (Get-ChildItem $distDir -Recurse -File | Measure-Object Length -Sum).Sum
-  Write-Host "  路径: $distDir"
-  Write-Host "  文件数: $count"
-  Write-Host "  大小: $([math]::Round($size / 1MB, 2)) MB"
+  Write-Host "  Path:      $distDir"
+  Write-Host "  FileCount: $count"
+  Write-Host "  Size:      $([math]::Round($size / 1MB, 2)) MB"
   $taskpane = Join-Path $distDir "src\taskpane.html"
   if (Test-Path $taskpane) {
-    Write-Host "  taskpane.html: ✅ 存在 ($((Get-Item $taskpane).Length) bytes)"
+    Write-Host "  taskpane.html: [OK] exists ($((Get-Item $taskpane).Length) bytes)"
   } else {
-    Write-Host "  taskpane.html: ❌ 不存在"
+    Write-Host "  taskpane.html: [FAIL] not found"
   }
 } else {
-  Write-Host "  ❌ dist 目录不存在: $distDir"
-  Write-Host "  → EXE 可能未成功解压内嵌资源"
+  Write-Host "  [FAIL] dist directory not found: $distDir"
+  Write-Host "  -> EXE may have failed to extract embedded resources"
 }
 Write-Host ""
 
-# 6. HTTPS 测试
-Write-Host "=== 6. HTTPS 连接测试 ==="
+# 6. HTTPS test
+Write-Host "=== 6. HTTPS Connection Test ==="
 try {
   $resp = Invoke-WebRequest -Uri 'https://localhost:3000/' -UseBasicParsing -TimeoutSec 10 -SkipCertificateCheck
-  Write-Host "  https://localhost:3000/  ✅ HTTP $($resp.StatusCode)"
+  Write-Host "  https://localhost:3000/         [OK] HTTP $($resp.StatusCode)"
   Write-Host "  Content-Length: $($resp.Content.Length) bytes"
-  Write-Host "  前 200 字符: $($resp.Content.Substring(0, [Math]::Min(200, $resp.Content.Length)))"
+  $preview = $resp.Content.Substring(0, [Math]::Min(200, $resp.Content.Length))
+  Write-Host "  Preview: $preview"
 } catch {
-  Write-Host "  https://localhost:3000/  ❌ $($_.Exception.Message)"
+  Write-Host "  https://localhost:3000/         [FAIL] $($_.Exception.Message)"
 }
 Write-Host ""
 
 try {
   $resp2 = Invoke-WebRequest -Uri 'https://localhost:3000/src/taskpane.html' -UseBasicParsing -TimeoutSec 10 -SkipCertificateCheck
-  Write-Host "  taskpane.html  ✅ HTTP $($resp2.StatusCode)  ($($resp2.Content.Length) bytes)"
+  Write-Host "  taskpane.html                   [OK] HTTP $($resp2.StatusCode) ($($resp2.Content.Length) bytes)"
 } catch {
-  Write-Host "  taskpane.html  ❌ $($_.Exception.Message)"
+  Write-Host "  taskpane.html                   [FAIL] $($_.Exception.Message)"
 }
 Write-Host ""
 
-try {
-  $resp3 = Invoke-WebRequest -Uri 'https://localhost:3000/assets/' -UseBasicParsing -TimeoutSec 10 -SkipCertificateCheck
-  Write-Host "  /assets/  ✅ HTTP $($resp3.StatusCode)"
-} catch {
-  Write-Host "  /assets/  ❌ $($_.Exception.Message)"
-}
-Write-Host ""
-
-# 7. Office 信任目录
-Write-Host "=== 7. Office 信任目录 ==="
+# 7. Office Trusted Catalogs
+Write-Host "=== 7. Office Trusted Catalogs ==="
 $regPaths = @(
   'HKCU:\Software\Microsoft\Office\16.0\WEF\TrustedCatalogs',
   'HKLM:\Software\Microsoft\Office\16.0\WEF\TrustedCatalogs'
@@ -122,66 +122,66 @@ $regPaths = @(
 foreach ($rp in $regPaths) {
   if (Test-Path $rp) {
     Write-Host "  $rp :"
-    Get-ChildItem $rp | ForEach-Object {
+    Get-ChildItem $rp -ErrorAction SilentlyContinue | ForEach-Object {
       $id = $_.PSChildName
       $url = (Get-ItemProperty $_.PSPath -ErrorAction SilentlyContinue).Url
       $flags = (Get-ItemProperty $_.PSPath -ErrorAction SilentlyContinue).Flags
       Write-Host "    ID=$id  Url=$url  Flags=$flags"
     }
   } else {
-    Write-Host "  $rp : 不存在"
+    Write-Host "  $rp : [NOT EXIST]"
   }
 }
 Write-Host ""
 
-# 8. 共享目录
-Write-Host "=== 8. 共享目录 ==="
+# 8. Shared folder
+Write-Host "=== 8. Shared Folder ==="
 $shares = Get-SmbShare -ErrorAction SilentlyContinue | Where-Object { $_.Name -match 'UIH|Catalog' }
 if ($shares) {
   $shares | ForEach-Object { Write-Host "  $($_.Name) -> $($_.Path)" }
 } else {
-  Write-Host "  ❌ 未找到 UIH_Catalog$ 共享"
+  Write-Host "  [FAIL] UIH_Catalog$ share not found"
 }
 Write-Host ""
 
-# 9. manifest 文件
-Write-Host "=== 9. manifest 文件 ==="
+# 9. manifest file
+Write-Host "=== 9. Manifest File ==="
 $manifestPath = "$env:LOCALAPPDATA\UIH_AI_Base_PI\manifest.xml"
 if (Test-Path $manifestPath) {
-  Write-Host "  ✅ $manifestPath ($((Get-Item $manifestPath).Length) bytes)"
+  Write-Host "  [OK] $manifestPath ($((Get-Item $manifestPath).Length) bytes)"
 } else {
-  Write-Host "  ❌ manifest.xml 不存在"
+  Write-Host "  [FAIL] manifest.xml not found at $manifestPath"
 }
-# 共享目录里的 manifest
 $shareManifest = "\\$env:COMPUTERNAME\UIH_Catalog$\UIH_AI_Base_PI-manifest.xml"
 if (Test-Path $shareManifest) {
-  Write-Host "  ✅ $shareManifest"
+  Write-Host "  [OK] $shareManifest"
 } else {
-  Write-Host "  ❌ 共享目录中的 manifest 不存在"
+  Write-Host "  [FAIL] manifest not found in shared folder"
 }
 Write-Host ""
 
-# 10. Office 缓存
-Write-Host "=== 10. Office 缓存 ==="
+# 10. Office cache
+Write-Host "=== 10. Office Cache ==="
 $wef = "$env:LOCALAPPDATA\Microsoft\Office\16.0\Wef"
 if (Test-Path $wef) {
   $wefSize = (Get-ChildItem $wef -Recurse -File -ErrorAction SilentlyContinue | Measure-Object Length -Sum).Sum
-  Write-Host "  Wef 目录存在: $([math]::Round($wefSize / 1KB, 1)) KB"
+  Write-Host "  Wef dir exists: $([math]::Round($wefSize / 1KB, 1)) KB"
 } else {
-  Write-Host "  Wef 目录不存在 (正常)"
+  Write-Host "  Wef dir not exist (normal)"
 }
 Write-Host ""
 
-# 11. 防火墙
-Write-Host "=== 11. 防火墙规则 ==="
-$fwRules = Get-NetFirewallRule -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -match 'UIH|联影|3000|3003' }
+# 11. Firewall rules
+Write-Host "=== 11. Firewall Rules ==="
+$fwRules = Get-NetFirewallRule -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -match 'UIH|3000|3003' }
 if ($fwRules) {
   $fwRules | ForEach-Object { Write-Host "  $($_.DisplayName) ($($_.Direction))" }
 } else {
-  Write-Host "  未找到 UIH 相关防火墙规则"
+  Write-Host "  No UIH-related firewall rules found"
 }
 Write-Host ""
 
 Write-Host "=========================================="
-Write-Host "  诊断完成。请把以上全部输出截图发回。"
+Write-Host "  Diagnostic complete."
+Write-Host "  Please screenshot all output above and send back."
 Write-Host "=========================================="
