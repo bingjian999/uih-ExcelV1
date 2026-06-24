@@ -5,6 +5,31 @@
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本 2.0.0](https://semver.org/lang/zh-CN/) 规范。
 
+每个版本的 GitHub Release 链接：
+- [v1.0.0](https://github.com/bingjian999/uih-ExcelV1/releases/tag/v1.0.0) - 2026-06-21
+
+---
+
+## [1.0.1] - 2026-06-24 (hotfix)
+
+### 修复（Fixed）
+
+- **关键 Bug：taskpane 空白页**：Vite 打包后 `taskpane.html` 引用的资源路径写成 `/assets/v6/*.js`，但实际文件位于 `/assets/*.js`（无 `v6/` 子目录）。导致 ES module 404、bundle 永远不执行、加载项一直停在 loading 状态
+  - 受影响文件：`dist/src/taskpane.html` (12 处资源引用)
+  - 修复方法：批量替换 `/assets/v6/` → `/assets/`
+  - 影响范围：所有通过本地 HTTPS 模式（`https://localhost:3000`）加载 taskpane 的环境
+  - 验证：在浏览器打开 `https://localhost:3000/src/taskpane.html` 不再空白；F12 Console 不再报 404
+
+### 部署说明
+
+- 旧用户：直接用此版本覆盖 `C:\Users\bingjian.wang\AppData\Local\UIH_AI_Base_PI\dist\src\taskpane.html` 即可修复（无需重装 EXE）
+- 新用户：使用最新 EXE（`UIH_AI_Base_PI-v1.0.1.exe`），首次启动会自动解压正确的 dist
+
+### 验证
+
+- 浏览器直接访问 `https://localhost:3000/src/taskpane.html` 看到完整 UI（设置侧边栏、会话、模型选择等）
+- Excel 加载项面板内点击"联影AI"按钮不再空白
+
 ---
 
 ## [1.0.0] - 2026-06-21
