@@ -433,7 +433,7 @@ function tryEmbeddedCerts() {
   try {
     const cert = Buffer.from(SEA_INFO.getAsset("cert.pem"));
     const key = Buffer.from(SEA_INFO.getAsset("key.pem"));
-    if (cert && key) {
+    if (cert && key && cert.length > 100 && key.length > 100) {
       fs.writeFileSync(CERT_PATH, cert);
       fs.writeFileSync(KEY_PATH, key);
       return true;
@@ -444,10 +444,29 @@ function tryEmbeddedCerts() {
   return false;
 }
 
+function isValidPemCert(certPath, keyPath) {
+  try {
+    const cert = fs.readFileSync(certPath, "utf8");
+    const key = fs.readFileSync(keyPath, "utf8");
+    if (!cert || !key || cert.length < 100 || key.length < 100) return false;
+    if (!cert.includes("-----BEGIN")) return false;
+    if (!key.includes("-----BEGIN")) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function ensureCerts() {
   if (fs.existsSync(KEY_PATH) && fs.existsSync(CERT_PATH)) {
-    log("使用现有 HTTPS 证书:", CERT_PATH);
-    return { ok: true, trusted: true, method: "existing" };
+    if (isValidPemCert(CERT_PATH, KEY_PATH)) {
+      log("使用现有 HTTPS 证书:", CERT_PATH);
+      return { ok: true, trusted: true, method: "existing" };
+    } else {
+      warn("现有证书文件无效，正在重新生成...");
+      try { fs.unlinkSync(KEY_PATH); } catch {}
+      try { fs.unlinkSync(CERT_PATH); } catch {}
+    }
   }
   fs.mkdirSync(CERT_DIR, { recursive: true });
   if (tryEmbeddedCerts()) {
@@ -1249,10 +1268,32 @@ async function main() {
   const localModels = await discoverLocalModels();
 
   // 5. start main server (port 3000 — static files + local model proxy + AI test)
-  const server = https.createServer(
-    { key: fs.readFileSync(KEY_PATH), cert: fs.readFileSync(CERT_PATH) },
-    handler,
-  );
+  let server;
+  try {
+    server = https.createServer(
+      { key: fs.readFileSync(KEY_PATH), cert: fs.readFileSync(CERT_PATH) },
+      handler,
+    );
+  } catch (e) {
+    warn("HTTPS 证书加载失败:", e.message);
+    warn("正在尝试重新生成证书...");
+    try { fs.unlinkSync(KEY_PATH); } catch {}
+    try { fs.unlinkSync(CERT_PATH); } catch {}
+    const retryCert = ensureCerts();
+    if (!retryCert.ok) {
+      warn("无法重新生成 HTTPS 证书。请安装 mkcert 后重试。");
+      process.exit(1);
+    }
+    try {
+      server = https.createServer(
+        { key: fs.readFileSync(KEY_PATH), cert: fs.readFileSync(CERT_PATH) },
+        handler,
+      );
+    } catch (e2) {
+      warn("重新生成后仍然失败:", e2.message);
+      process.exit(1);
+    }
+  }
   server.on("error", (e) => {
     if (e.code === "EADDRINUSE") {
       warn(`Port ${PORT} is already in use. Close other instances (or set PI_PORT).`);
@@ -1276,22 +1317,30 @@ async function main() {
   });
 
   // 6. start CORS proxy server (port 3003 — eliminates need for npx pi-for-excel-proxy)
-  const proxyServer = https.createServer(
-    { key: fs.readFileSync(KEY_PATH), cert: fs.readFileSync(CERT_PATH) },
-    corsProxyHandler,
-  );
-  proxyServer.on("error", (e) => {
-    if (e.code === "EADDRINUSE") {
-      warn(`CORS 代理端口 ${PROXY_PORT} 已被占用 (可能有其他代理正在运行)。`);
-      warn(`The "Proxy not running" banner may appear. Close the other process and re-run.`);
-    } else {
-      warn("CORS 代理错误:", e.message);
-    }
-    // Don't exit — the main server is still functional
-  });
-  proxyServer.listen(PROXY_PORT, "::", () => {
-    log(`CORS 代理已启动: ${PROXY_ORIGIN} (消除 "Proxy not running" 提示)`);
-  });
+  let proxyServer;
+  try {
+    proxyServer = https.createServer(
+      { key: fs.readFileSync(KEY_PATH), cert: fs.readFileSync(CERT_PATH) },
+      corsProxyHandler,
+    );
+  } catch (e) {
+    warn("CORS 代理 HTTPS 证书加载失败:", e.message);
+    proxyServer = null;
+  }
+  if (proxyServer) {
+    proxyServer.on("error", (e) => {
+      if (e.code === "EADDRINUSE") {
+        warn(`CORS 代理端口 ${PROXY_PORT} 已被占用 (可能有其他代理正在运行)。`);
+        warn(`The "Proxy not running" banner may appear. Close the other process and re-run.`);
+      } else {
+        warn("CORS 代理错误:", e.message);
+      }
+      // Don't exit — the main server is still functional
+    });
+    proxyServer.listen(PROXY_PORT, "::", () => {
+      log(`CORS 代理已启动: ${PROXY_ORIGIN} (消除 "Proxy not running" 提示)`);
+    });
+  }
 }
 
 function printInstructions(manifestFile, certInfo, localModels) {
