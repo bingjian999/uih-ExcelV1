@@ -1,6 +1,6 @@
 {
   "name": "uih-excel-tools",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "private": true,
   "description": "联影AI_Base_PI - 联影内部定制版 Excel AI 加载项,基于 pi-for-excel 二次开发,打包为单文件 EXE",
   "type": "module",
