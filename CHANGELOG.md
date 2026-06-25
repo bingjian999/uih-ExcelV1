@@ -11,6 +11,31 @@
 - [v1.0.2](https://github.com/bingjian999/uih-ExcelV1/releases/tag/v1.0.2) - 2026-06-25
 - [v1.0.3](https://github.com/bingjian999/uih-ExcelV1/releases/tag/v1.0.3) - 2026-06-25
 - [v1.0.4](https://github.com/bingjian999/uih-ExcelV1/releases/tag/v1.0.4) - 2026-06-25
+- [v1.0.5](https://github.com/bingjian999/uih-ExcelV1/releases/tag/v1.0.5) - 2026-06-25
+
+---
+
+## [1.0.5] - 2026-06-25 (hotfix)
+
+### 修复（Fixed）
+
+- **关键 Bug：虚拟机证书生成失败**：v1.0.4 修复了证书验证，但虚拟机上 mkcert 未安装、openssl 不可用、PowerShell 旧版不支持 `ExportPkcs8PrivateKey`，三种证书生成方式全部失败，EXE 退出码 1
+  - 错误日志：`证书创建失败。exit=1` + `所有证书生成方式均失败`
+  - 修复：新增 `tryNodeCryptoCert()` 函数，使用 PowerShell `New-SelfSignedCertificate` + `[Convert]::ToBase64String` 直接导出 PEM 格式证书，不依赖 openssl
+  - PowerShell 脚本使用 `[char]10` 替代反引号 `` `n `` 拼接换行符，避免 JS 模板字符串语法冲突
+  - 证书生成后立即用 `isValidPemCert()` 验证，确保可用
+
+### 构建（Built）
+
+- 基底：v1.0.0 EXE (已知工作的 Node.js SEA 基底)
+- EXE 大小：86,803,456 bytes (~82.8 MB)
+- dist.version：`v1.0.5`
+- 下载地址：[UIH_AI_Base_PI-v1.0.5.exe](https://github.com/bingjian999/uih-ExcelV1/releases/download/v1.0.5/UIH_AI_Base_PI-v1.0.5.exe)
+
+### 验证
+
+- 本机测试：EXE 启动成功，证书验证通过，HTTPS 服务器正常运行
+- 新增 `tryNodeCryptoCert()` 作为 mkcert/openssl/PowerShell 之后的第四道防线
 
 ---
 
