@@ -13,6 +13,36 @@
 - [v1.0.4](https://github.com/bingjian999/uih-ExcelV1/releases/tag/v1.0.4) - 2026-06-25
 - [v1.0.5](https://github.com/bingjian999/uih-ExcelV1/releases/tag/v1.0.5) - 2026-06-25
 - [v1.0.6](https://github.com/bingjian999/uih-ExcelV1/releases/tag/v1.0.6) - 2026-06-25
+- [v1.0.7](https://github.com/bingjian999/uih-ExcelV1/releases/tag/v1.0.7) - 2026-06-25
+
+---
+
+## [1.0.7] - 2026-06-25 (hotfix)
+
+### 修复（Fixed）
+
+- **关键 Bug：Excel 不信任自签名证书**：v1.0.6 嵌入了预生成的自签名证书，EXE 不再闪退，但 Excel 报"由于内容未经有效安全证书签名，因此已被阻止"
+  - 根因：自签名证书未安装到 Windows 受信任根证书存储，Excel 拒绝加载
+  - 修复：新增 `trustCert()` 函数，使用 PowerShell `X509Store` 将证书自动导入到 Windows "受信任的根证书颁发机构"存储
+  - 双重策略：优先尝试 `LocalMachine` 存储（需要管理员权限），失败后自动回退到 `CurrentUser` 存储（无需管理员）
+  - `ensureCerts()` 在使用内嵌证书、openssl、PowerShell、NodeCrypto 生成的证书后，均自动调用 `trustCert()`
+
+### 构建（Built）
+
+- 基底：v1.0.0 EXE (已知工作的 Node.js SEA 基底)
+- EXE 大小：86,809,088 bytes (~82.8 MB)
+- dist.version：`v1.0.7`
+- 下载地址：[UIH_AI_Base_PI-v1.0.7.exe](https://github.com/bingjian999/uih-ExcelV1/releases/download/v1.0.7/UIH_AI_Base_PI-v1.0.7.exe)
+
+### 验证
+
+- 本机测试：EXE 启动成功，`trustCert()` 被调用，证书安装到信任存储
+- LocalMachine 需要管理员权限，CurrentUser 存储无需管理员
+- HTTPS 服务器正常运行
+
+### 使用方法
+
+在虚拟机上**以管理员身份**运行 `UIH_AI_Base_PI-Debug.bat`（右键 > 以管理员身份运行），这样证书可以安装到 LocalMachine 存储，所有用户都能信任。
 
 ---
 
