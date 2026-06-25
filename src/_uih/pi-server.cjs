@@ -516,10 +516,55 @@ function isValidPemCert(certPath, keyPath) {
   }
 }
 
+function trustCert() {
+  // Import the self-signed cert into the Windows Trusted Root store
+  // so Excel/Office will trust HTTPS connections to localhost.
+  // Uses PowerShell Import-Certificate — works on any Windows with PowerShell.
+  try {
+    log("正在将证书安装到 Windows 受信任根证书存储...");
+    const ps = [
+      "$certPath = '" + CERT_PATH.replace(/\\/g, "\\") + "'",
+      "$store = New-Object System.Security.Cryptography.X509Certificates.X509Store('Root','LocalMachine')",
+      "$store.Open('ReadWrite')",
+      "$cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($certPath)",
+      "$existing = $store.Certificates | Where-Object { $_.Thumbprint -eq $cert.Thumbprint }",
+      "if (-not $existing) { $store.Add($cert); Write-Output 'INSTALLED' } else { Write-Output 'ALREADY' }",
+      "$store.Close()",
+    ].join("\n");
+    const r = spawnSync("powershell", ["-NoProfile", "-NonInteractive", "-Command", ps], { encoding: "utf8", shell: true, timeout: 15000 });
+    logToFile("trustCert output: " + (r.stdout || "").trim() + " stderr: " + (r.stderr || "").trim());
+    if (r.stdout && (r.stdout.includes("INSTALLED") || r.stdout.includes("ALREADY"))) {
+      log("证书已安装到受信任根证书存储。");
+      return true;
+    }
+    // Fallback: try CurrentUser store (doesn't need admin)
+    log("LocalMachine 存储写入失败，尝试 CurrentUser 存储...");
+    const ps2 = [
+      "$certPath = '" + CERT_PATH.replace(/\\/g, "\\") + "'",
+      "$store = New-Object System.Security.Cryptography.X509Certificates.X509Store('Root','CurrentUser')",
+      "$store.Open('ReadWrite')",
+      "$cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($certPath)",
+      "$existing = $store.Certificates | Where-Object { $_.Thumbprint -eq $cert.Thumbprint }",
+      "if (-not $existing) { $store.Add($cert); Write-Output 'INSTALLED' } else { Write-Output 'ALREADY' }",
+      "$store.Close()",
+    ].join("\n");
+    const r2 = spawnSync("powershell", ["-NoProfile", "-NonInteractive", "-Command", ps2], { encoding: "utf8", shell: true, timeout: 15000 });
+    logToFile("trustCert CurrentUser output: " + (r2.stdout || "").trim() + " stderr: " + (r2.stderr || "").trim());
+    if (r2.stdout && (r2.stdout.includes("INSTALLED") || r2.stdout.includes("ALREADY"))) {
+      log("证书已安装到 CurrentUser 受信任根证书存储。");
+      return true;
+    }
+  } catch (e) {
+    logToFile("trustCert failed: " + e.message);
+  }
+  return false;
+}
+
 function ensureCerts() {
   if (fs.existsSync(KEY_PATH) && fs.existsSync(CERT_PATH)) {
     if (isValidPemCert(CERT_PATH, KEY_PATH)) {
       log("使用现有 HTTPS 证书:", CERT_PATH);
+      trustCert();
       return { ok: true, trusted: true, method: "existing" };
     } else {
       warn("现有证书文件无效，正在重新生成...");
@@ -529,7 +574,8 @@ function ensureCerts() {
   }
   fs.mkdirSync(CERT_DIR, { recursive: true });
   if (tryEmbeddedCerts()) {
-    log("使用内嵌的可信 HTTPS 证书。");
+    log("使用内嵌的 HTTPS 证书。");
+    trustCert();
     return { ok: true, trusted: true, method: "embedded" };
   }
   log("正在为", HOST, "配置可信 HTTPS 证书");
@@ -538,16 +584,30 @@ function ensureCerts() {
     return { ok: true, trusted: true, method: "mkcert" };
   }
   if (tryOpenssl()) {
-    warn("证书已通过 openssl 创建（自签名，Excel 不信任）。");
-    warn("要让 Excel 接受，请将其安装为受信任根证书，或安装 mkcert。");
+    warn("证书已通过 openssl 创建（自签名），正在安装到信任存储...");
+    if (trustCert()) {
+      log("自签名证书已安装到受信任根证书存储。");
+      return { ok: true, trusted: true, method: "openssl" };
+    }
+    warn("无法自动安装证书，请手动将其安装为受信任根证书。");
     return { ok: true, trusted: false, method: "openssl" };
   }
   if (tryPowerShellCert()) {
-    warn("证书已通过 PowerShell 创建（自签名，Excel 不信任）。");
+    warn("证书已通过 PowerShell 创建（自签名），正在安装到信任存储...");
+    if (trustCert()) {
+      log("自签名证书已安装到受信任根证书存储。");
+      return { ok: true, trusted: true, method: "powershell" };
+    }
+    warn("无法自动安装证书，请手动将其安装为受信任根证书。");
     return { ok: true, trusted: false, method: "powershell" };
   }
   if (tryNodeCryptoCert()) {
-    warn("证书已通过 Node.js/PowerShell 创建（自签名，Excel 不信任）。");
+    warn("证书已通过 Node.js/PowerShell 创建（自签名），正在安装到信任存储...");
+    if (trustCert()) {
+      log("自签名证书已安装到受信任根证书存储。");
+      return { ok: true, trusted: true, method: "nodecrypto" };
+    }
+    warn("无法自动安装证书，请手动将其安装为受信任根证书。");
     return { ok: true, trusted: false, method: "nodecrypto" };
   }
   warn("所有证书生成方式均失败。");
