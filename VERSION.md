@@ -2,15 +2,15 @@
 
 | 字段 | 值 |
 |------|-----|
-| 当前版本 | **v1.0.3** (hotfix) |
+| 当前版本 | **v1.0.4** (hotfix) |
 | 发布日期 | 2026-06-25 |
 | 基于 | pi-for-excel v0.9.5-pre |
-| Git tag | `v1.0.3` |
-| GitHub Release | https://github.com/bingjian999/uih-ExcelV1/releases/tag/v1.0.3 |
-| EXE 下载 | https://github.com/bingjian999/uih-ExcelV1/releases/download/v1.0.3/UIH_AI_Base_PI-v1.0.3.exe |
-| EXE 大小 | 86,798,336 bytes (~82.8 MB) |
+| Git tag | `v1.0.4` |
+| GitHub Release | https://github.com/bingjian999/uih-ExcelV1/releases/tag/v1.0.4 |
+| EXE 下载 | https://github.com/bingjian999/uih-ExcelV1/releases/download/v1.0.4/UIH_AI_Base_PI-v1.0.4.exe |
+| EXE 大小 | 86,799,872 bytes (~82.8 MB) |
 | 构建方式 | postject --overwrite (基于 v1.0.0 EXE 基底) |
-| 调试工具 | UIH_AI_Base_PI-Debug.bat (崩溃后窗口不关闭) |
+| 调试工具 | UIH_AI_Base_PI-Debug.bat (纯 ASCII, 崩溃后窗口不关闭) |
 | 日志文件 | %LOCALAPPDATA%\UIH_AI_Base_PI\server.log |
 | 状态 | **已发布** |
 
