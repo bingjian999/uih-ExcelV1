@@ -2,15 +2,16 @@
 
 | 字段 | 值 |
 |------|-----|
-| 当前版本 | **v1.0.6** (hotfix) |
+| 当前版本 | **v1.0.7** (hotfix) |
 | 发布日期 | 2026-06-25 |
 | 基于 | pi-for-excel v0.9.5-pre |
-| Git tag | `v1.0.6` |
-| GitHub Release | https://github.com/bingjian999/uih-ExcelV1/releases/tag/v1.0.6 |
-| EXE 下载 | https://github.com/bingjian999/uih-ExcelV1/releases/download/v1.0.6/UIH_AI_Base_PI-v1.0.6.exe |
-| EXE 大小 | 86,806,016 bytes (~82.8 MB) |
+| Git tag | `v1.0.7` |
+| GitHub Release | https://github.com/bingjian999/uih-ExcelV1/releases/tag/v1.0.7 |
+| EXE 下载 | https://github.com/bingjian999/uih-ExcelV1/releases/download/v1.0.7/UIH_AI_Base_PI-v1.0.7.exe |
+| EXE 大小 | 86,809,088 bytes (~82.8 MB) |
 | 构建方式 | postject --overwrite (基于 v1.0.0 EXE 基底) |
 | 内嵌证书 | 自签名 RSA 2048, 10年有效期, localhost+127.0.0.1 |
+| 证书信任 | 自动安装到 Windows 受信任根证书存储 (trustCert) |
 | 调试工具 | UIH_AI_Base_PI-Debug.bat (纯 ASCII, 崩溃后窗口不关闭) |
 | 日志文件 | %LOCALAPPDATA%\UIH_AI_Base_PI\server.log |
 | 状态 | **已发布** |
