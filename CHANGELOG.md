@@ -7,6 +7,36 @@
 
 每个版本的 GitHub Release 链接：
 - [v1.0.0](https://github.com/bingjian999/uih-ExcelV1/releases/tag/v1.0.0) - 2026-06-21
+- [v1.0.1](https://github.com/bingjian999/uih-ExcelV1/releases/tag/v1.0.1) - 2026-06-25
+- [v1.0.2](https://github.com/bingjian999/uih-ExcelV1/releases/tag/v1.0.2) - 2026-06-25
+
+---
+
+## [1.0.2] - 2026-06-25 (hotfix)
+
+### 修复（Fixed）
+
+- **关键 Bug：EXE 闪退**：当 Excel 仍打开上一次运行生成的 sideload xlsx 文件时，`generateSideloadXlsx()` 尝试覆盖该文件触发 `EBUSY: resource busy or locked` 异常。该异常在 `setTimeout` 回调中抛出，未被捕获，导致整个进程崩溃
+  - 根因：`pi-server.cjs:1057` 使用固定文件名 `UIH_AI_Base_PI-sideload.xlsx`，被 Excel 锁定后无法覆盖
+  - 修复 1：sideload 文件名加入时间戳（`UIH_AI_Base_PI-sideload-{timestamp}.xlsx`），避免文件锁冲突
+  - 修复 2：`writeFileSync` 包裹 try-catch，失败时优雅降级而非崩溃
+  - 修复 3：`autoSideload` 调用包裹 try-catch，sideload 失败不影响服务器运行
+  - 修复 4：添加全局 `uncaughtException` / `unhandledRejection` 处理器，作为最后防线
+
+### 构建（Built）
+
+- 基底：v1.0.0 EXE (已知工作的 Node.js SEA 基底)
+- 注入方式：`postject --overwrite` 重新注入修复后的 sea-prep.blob
+- EXE 大小：86,797,312 bytes (~82.8 MB)
+- dist.version：`v1.0.2`
+- 下载地址：[UIH_AI_Base_PI-v1.0.2.exe](https://github.com/bingjian999/uih-ExcelV1/releases/download/v1.0.2/UIH_AI_Base_PI-v1.0.2.exe)
+
+### 验证
+
+- EXE 启动后稳定运行 13+ 秒无崩溃（v1.0.1 在同样条件下 1.5 秒后崩溃）
+- sideload 文件使用时间戳文件名，不再与 Excel 锁冲突
+- HTTPS 服务器 `https://localhost:3000/__status__` 返回 `{"ok": true}`
+- 全局异常处理器确保即使 sideload 失败，服务器仍继续运行
 
 ---
 
