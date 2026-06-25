@@ -46,15 +46,58 @@ const crypto = require("node:crypto");
 const zlib = require("node:zlib");
 
 // ---------------------------------------------------------------------------
+// File logger — writes to %LOCALAPPDATA%\UIH_AI_Base_PI\server.log
+// This is critical for debugging crashes on machines where the console window
+// closes too fast to read the error.
+// ---------------------------------------------------------------------------
+const LOG_DIR = path.join(
+  process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local"),
+  "UIH_AI_Base_PI"
+);
+const LOG_FILE = path.join(LOG_DIR, "server.log");
+
+try {
+  fs.mkdirSync(LOG_DIR, { recursive: true });
+} catch {}
+
+function logToFile(msg) {
+  try {
+    const ts = new Date().toISOString();
+    fs.appendFileSync(LOG_FILE, `[${ts}] ${msg}\n`, "utf8");
+  } catch {}
+}
+
+// Override console.error to also write to file
+const _origError = console.error;
+console.error = function (...args) {
+  _origError.apply(console, args);
+  logToFile(args.map(a => (a instanceof Error ? a.stack || a.message : String(a))).join(" "));
+};
+
+const _origLog = console.log;
+console.log = function (...args) {
+  _origLog.apply(console, args);
+  logToFile(args.map(a => String(a)).join(" "));
+};
+
+logToFile("========== 联影AI_Base_PI 启动 ==========");
+logToFile(`Node.js ${process.version} ${process.platform} ${process.arch}`);
+logToFile(`EXE: ${process.execPath}`);
+logToFile(`Log file: ${LOG_FILE}`);
+
+// ---------------------------------------------------------------------------
 // Global error handlers — prevent crashes from uncaught exceptions in timers
 // (e.g. EBUSY when Excel locks the sideload file from a previous run)
 // ---------------------------------------------------------------------------
 process.on("uncaughtException", (err) => {
-  console.error("[联影AI] 未捕获的异常 (非致命, 服务器继续运行):", err.message);
-  if (err.stack) console.error(err.stack);
+  const msg = `[FATAL] 未捕获的异常: ${err.message}\n${err.stack || ""}`;
+  console.error(msg);
+  logToFile(msg);
 });
 process.on("unhandledRejection", (reason) => {
-  console.error("[联影AI] 未处理的 Promise 拒绝 (非致命):", reason);
+  const msg = `[FATAL] 未处理的 Promise 拒绝: ${reason}`;
+  console.error(msg);
+  logToFile(msg);
 });
 
 // ---------------------------------------------------------------------------
