@@ -1,15 +1,14 @@
 @echo off
-chcp 65001 >nul 2>&1
-title 联影AI_Base_PI 调试模式
+title UIH_AI_Base_PI Debug Launcher
 
 echo ============================================================
-echo   联影AI_Base_PI 调试启动器
+echo   UIH_AI_Base_PI Debug Launcher
 echo ============================================================
 echo.
-echo 此窗口会保持打开，即使程序出错也不会关闭。
-echo 请将此窗口的内容截图发送给开发人员。
+echo This window will stay open even if the program crashes.
+echo Please screenshot this window and send to the developer.
 echo.
-echo 日志文件位置: %LOCALAPPDATA%\UIH_AI_Base_PI\server.log
+echo Log file location: %LOCALAPPDATA%\UIH_AI_Base_PI\server.log
 echo.
 echo ------------------------------------------------------------
 echo.
@@ -22,16 +21,16 @@ echo.
 echo ------------------------------------------------------------
 echo.
 if %EXITCODE% NEQ 0 (
-  echo [错误] 程序异常退出，退出码: %EXITCODE%
+  echo [ERROR] Program exited with code: %EXITCODE%
   echo.
-  echo 请截图此窗口，并附上日志文件:
+  echo Please screenshot this window and attach the log file:
   echo   %LOCALAPPDATA%\UIH_AI_Base_PI\server.log
   echo.
-  echo 发送给开发人员以便诊断问题。
+  echo Send to developer for diagnosis.
 ) else (
-  echo [正常] 程序已退出，退出码: 0
+  echo [OK] Program exited normally with code: 0
 )
 
 echo.
-echo 按任意键关闭此窗口...
+echo Press any key to close this window...
 pause >nul
