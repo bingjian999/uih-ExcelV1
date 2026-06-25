@@ -9,6 +9,43 @@
 - [v1.0.0](https://github.com/bingjian999/uih-ExcelV1/releases/tag/v1.0.0) - 2026-06-21
 - [v1.0.1](https://github.com/bingjian999/uih-ExcelV1/releases/tag/v1.0.1) - 2026-06-25
 - [v1.0.2](https://github.com/bingjian999/uih-ExcelV1/releases/tag/v1.0.2) - 2026-06-25
+- [v1.0.3](https://github.com/bingjian999/uih-ExcelV1/releases/tag/v1.0.3) - 2026-06-25
+
+---
+
+## [1.0.3] - 2026-06-25 (hotfix)
+
+### 修复（Fixed）
+
+- **关键 Bug：其他电脑闪退**：在其他电脑上运行 EXE 时，由于环境差异（证书生成失败、端口占用、权限不足等），JS 异常导致进程崩溃，但控制台窗口关闭太快无法看到错误信息
+  - 修复 1：添加文件日志系统，所有 `console.log` / `console.error` 同时写入 `%LOCALAPPDATA%\UIH_AI_Base_PI\server.log`
+  - 修复 2：`uncaughtException` 和 `unhandledRejection` 处理器将错误写入日志文件
+  - 修复 3：提供 `UIH_AI_Base_PI-Debug.bat` 调试包装器，崩溃后窗口不关闭，显示错误信息和退出码
+
+### 新增（Added）
+
+- **文件日志系统**：`server.log` 记录所有启动信息、错误堆栈、运行状态
+- **调试启动器**：`UIH_AI_Base_PI-Debug.bat` — 双击运行，崩溃后暂停显示错误，不会闪退
+
+### 构建（Built）
+
+- 基底：v1.0.0 EXE (已知工作的 Node.js SEA 基底)
+- EXE 大小：86,798,336 bytes (~82.8 MB)
+- dist.version：`v1.0.3`
+- 下载地址：[UIH_AI_Base_PI-v1.0.3.exe](https://github.com/bingjian999/uih-ExcelV1/releases/download/v1.0.3/UIH_AI_Base_PI-v1.0.3.exe)
+
+### 验证
+
+- EXE 启动成功，server.log 正确写入
+- HTTPS 服务器 `https://localhost:3000/__status__` 返回 `{"ok": true}`
+- 日志文件包含完整的启动信息、Node.js 版本、EXE 路径
+
+### 诊断指南
+
+如果 v1.0.3 在其他电脑上仍然闪退：
+1. 使用 `UIH_AI_Base_PI-Debug.bat` 启动（窗口不会关闭）
+2. 查看 `%LOCALAPPDATA%\UIH_AI_Base_PI\server.log` 日志文件
+3. 将窗口截图和日志文件发送给开发人员
 
 ---
 
