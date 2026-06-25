@@ -46,6 +46,18 @@ const crypto = require("node:crypto");
 const zlib = require("node:zlib");
 
 // ---------------------------------------------------------------------------
+// Global error handlers — prevent crashes from uncaught exceptions in timers
+// (e.g. EBUSY when Excel locks the sideload file from a previous run)
+// ---------------------------------------------------------------------------
+process.on("uncaughtException", (err) => {
+  console.error("[联影AI] 未捕获的异常 (非致命, 服务器继续运行):", err.message);
+  if (err.stack) console.error(err.stack);
+});
+process.on("unhandledRejection", (reason) => {
+  console.error("[联影AI] 未处理的 Promise 拒绝 (非致命):", reason);
+});
+
+// ---------------------------------------------------------------------------
 // SEA (Single Executable Application) bootstrap
 // ---------------------------------------------------------------------------
 // When this script is the SEA entry, the built dist/ is embedded as a gzip
@@ -1051,10 +1063,17 @@ function generateSideloadXlsx(addinId, addinVersion) {
     templateData = fs.readFileSync(templatePath);
   }
 
-  // Write template to a temp file
+  // Write template to a temp file — use timestamp to avoid EBUSY when Excel
+  // still has the previous sideload file locked from a prior run.
   const tmpDir = os.tmpdir();
-  const sideloadPath = path.join(tmpDir, "UIH_AI_Base_PI-sideload.xlsx");
-  fs.writeFileSync(sideloadPath, templateData);
+  const ts = Date.now();
+  const sideloadPath = path.join(tmpDir, `UIH_AI_Base_PI-sideload-${ts}.xlsx`);
+  try {
+    fs.writeFileSync(sideloadPath, templateData);
+  } catch (e) {
+    warn("无法写入 sideload 文件:", e.message);
+    return null;
+  }
 
   // Use PowerShell + .NET ZipFile to modify the webextension.xml inside the xlsx
   // Write the script to a temp .ps1 file to avoid -Command multiline issues
@@ -1204,7 +1223,12 @@ async function main() {
     // Auto-sideload: register manifest + launch Excel with the add-in
     // Give the server a brief moment to be fully ready before launching Excel
     setTimeout(() => {
-      autoSideload(manifestFile);
+      try {
+        autoSideload(manifestFile);
+      } catch (e) {
+        warn("自动 sideload 失败 (非致命):", e.message);
+        warn("您可通过 Excel > 插入 > 我的加载项 手动加载。");
+      }
     }, 1500);
   });
 
