@@ -10,6 +10,37 @@
 - [v1.0.1](https://github.com/bingjian999/uih-ExcelV1/releases/tag/v1.0.1) - 2026-06-25
 - [v1.0.2](https://github.com/bingjian999/uih-ExcelV1/releases/tag/v1.0.2) - 2026-06-25
 - [v1.0.3](https://github.com/bingjian999/uih-ExcelV1/releases/tag/v1.0.3) - 2026-06-25
+- [v1.0.4](https://github.com/bingjian999/uih-ExcelV1/releases/tag/v1.0.4) - 2026-06-25
+
+---
+
+## [1.0.4] - 2026-06-25 (hotfix)
+
+### 修复（Fixed）
+
+- **关键 Bug：虚拟机证书崩溃**：在其他电脑/虚拟机上首次运行 EXE 时，提取的占位符 `cert.pem`/`key.pem` 为空文件，`https.createServer` 尝试解析空的 PEM 内容时抛出 `ERR_OSSL_PEM_BAD_BASE64_DECODE` 异常导致进程崩溃
+  - 错误信息：`error:04800064:PEM routines::bad base64 decode`
+  - 崩溃位置：`pi-server.cjs:1252` — `https.createServer({ key, cert })`
+  - 根因：`ensureCerts()` 只检查文件是否存在，不验证内容有效性
+  - 修复 1：新增 `isValidPemCert()` 函数，验证证书文件包含 `-----BEGIN` 头且长度 > 100 字节
+  - 修复 2：`ensureCerts()` 检测到无效证书时自动删除并重新生成
+  - 修复 3：`tryEmbeddedCerts()` 增加长度检查，空占位符文件不会被当作有效证书
+  - 修复 4：`https.createServer` 包裹 try-catch，证书加载失败时自动重试生成
+  - 修复 5：CORS 代理服务器同样包裹 try-catch，证书失败不影响主服务器
+- **Debug BAT 编码修复**：BAT 文件中的中文字符在 GBK 编码的 CMD 中变成乱码导致报错，已改为纯 ASCII 英文
+
+### 构建（Built）
+
+- 基底：v1.0.0 EXE (已知工作的 Node.js SEA 基底)
+- EXE 大小：86,799,872 bytes (~82.8 MB)
+- dist.version：`v1.0.4`
+- 下载地址：[UIH_AI_Base_PI-v1.0.4.exe](https://github.com/bingjian999/uih-ExcelV1/releases/download/v1.0.4/UIH_AI_Base_PI-v1.0.4.exe)
+
+### 验证
+
+- 本机测试：EXE 启动成功，证书验证通过，HTTPS 服务器正常运行
+- 证书验证逻辑：有效证书直接使用，无效证书自动删除并重新生成
+- `https.createServer` try-catch：即使证书加载失败也不会崩溃，会自动重试
 
 ---
 
