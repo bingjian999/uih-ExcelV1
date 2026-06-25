@@ -10,7 +10,7 @@
 
 ---
 
-## [1.0.1] - 2026-06-24 (hotfix)
+## [1.0.1] - 2026-06-25 (hotfix)
 
 ### 修复（Fixed）
 
@@ -20,14 +20,26 @@
   - 影响范围：所有通过本地 HTTPS 模式（`https://localhost:3000`）加载 taskpane 的环境
   - 验证：在浏览器打开 `https://localhost:3000/src/taskpane.html` 不再空白；F12 Console 不再报 404
 
+### 构建（Built）
+
+- **重新打包 EXE**：基于 v1.0.0 EXE 基底，使用 postject `--overwrite` 重新注入修复后的 sea-prep.blob
+  - EXE 大小：86,795,776 bytes (~82.8 MB)
+  - 内嵌 dist.blob：52 个文件，1,487,877 bytes (gzip)
+  - dist.version：`v1.0.1`
+  - 下载地址：[UIH_AI_Base_PI-v1.0.1.exe](https://github.com/bingjian999/uih-ExcelV1/releases/download/v1.0.1/UIH_AI_Base_PI-v1.0.1.exe)
+
 ### 部署说明
 
-- 旧用户：直接用此版本覆盖 `C:\Users\bingjian.wang\AppData\Local\UIH_AI_Base_PI\dist\src\taskpane.html` 即可修复（无需重装 EXE）
-- 新用户：使用最新 EXE（`UIH_AI_Base_PI-v1.0.1.exe`），首次启动会自动解压正确的 dist
+- **旧用户**（已在 v1.0.0）：
+  - 方式一（推荐）：下载新 EXE 直接替换旧 EXE，首次启动会自动覆盖 dist 目录
+  - 方式二（快速修复）：仅下载 `dist/src/taskpane.html`，覆盖 `C:\Users\bingjian.wang\AppData\Local\UIH_AI_Base_PI\dist\src\taskpane.html`
+- **新用户**：直接使用 `UIH_AI_Base_PI-v1.0.1.exe`，首次启动自动解压正确的 dist
 
 ### 验证
 
-- 浏览器直接访问 `https://localhost:3000/src/taskpane.html` 看到完整 UI（设置侧边栏、会话、模型选择等）
+- EXE 启动成功：显示"联影AI_Base_PI — 本地启动器"，HTTPS 服务器在端口 3000 运行
+- 提取的 taskpane.html 中 `/assets/v6/` 引用数为 0（已修复）
+- 浏览器直接访问 `https://localhost:3000/src/taskpane.html` 看到完整 UI
 - Excel 加载项面板内点击"联影AI"按钮不再空白
 
 ---
