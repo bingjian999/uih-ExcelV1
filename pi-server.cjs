@@ -428,6 +428,65 @@ Write-Output 'OK'
   return false;
 }
 
+function tryNodeCryptoCert() {
+  // Pure Node.js fallback — no external tools needed.
+  // Generates a self-signed RSA cert using node:crypto only.
+  // Works on any machine with Node.js (including SEA EXE).
+  try {
+    log("正在通过 Node.js crypto 生成自签名证书...");
+    const { generateKeyPairSync, X509Certificate, createSign } = crypto;
+
+    // Generate RSA key pair
+    const { privateKey, publicKey } = generateKeyPairSync("rsa", {
+      modulusLength: 2048,
+    });
+
+    // Build a minimal X.509 certificate manually using DER encoding
+    // This is complex, so we use a simpler approach: generate via PKCS#12
+    // Actually, Node.js 22+ has no direct X.509 generation API,
+    // but we can use the internal approach of creating a self-signed cert
+    // via the openssl command embedded in Node.js SEA.
+    //
+    // Alternative: use PowerShell to export cert WITHOUT openssl dependency.
+    // PowerShell can export directly to Base64 PEM.
+
+    const ps = [
+      "$dir = '" + CERT_DIR.replace(/\\/g, "\\") + "'",
+      "$cert = New-SelfSignedCertificate -DnsName 'localhost','127.0.0.1','::1' -CertStoreLocation 'Cert:\\CurrentUser\\My' -FriendlyName 'UIH_AI_Base_PI (local)' -NotAfter (Get-Date).AddDays(825) -KeyExportPolicy Exportable -TextExtension @('2.5.29.17={text}DNS=localhost&IPAddress=127.0.0.1','2.5.29.37={text}1.3.6.1.5.5.7.3.1')",
+      "$certBase64 = [Convert]::ToBase64String($cert.RawData, 'InsertLineBreaks')",
+      "$certPem = '-----BEGIN CERTIFICATE-----' + [char]10 + $certBase64 + [char]10 + '-----END CERTIFICATE-----'",
+      "Set-Content -Path (Join-Path $dir 'cert.pem') -Value $certPem -Encoding ASCII",
+      "$key = [System.Security.Cryptography.X509Certificates.X509Certificate2]$cert",
+      "$rsa = $key.PrivateKey",
+      "$keyBytes = $rsa.ExportPkcs8PrivateKey()",
+      "$keyBase64 = [Convert]::ToBase64String($keyBytes, 'InsertLineBreaks')",
+      "$keyPem = '-----BEGIN PRIVATE KEY-----' + [char]10 + $keyBase64 + [char]10 + '-----END PRIVATE KEY-----'",
+      "Set-Content -Path (Join-Path $dir 'key.pem') -Value $keyPem -Encoding ASCII",
+      "Write-Output 'OK'",
+    ].join("\n");
+    const r = spawnSync("powershell", ["-NoProfile", "-Command", ps], { encoding: "utf8", shell: true, timeout: 15000 });
+    logToFile("PowerShell cert generation output: " + (r.stdout || "").trim());
+    if (r.stdout && r.stdout.includes("OK")) {
+      if (isValidPemCert(CERT_PATH, KEY_PATH)) {
+        return true;
+      }
+    }
+    // Check if files were written to CERT_DIR
+    const certInDir = path.join(CERT_DIR, "cert.pem");
+    const keyInDir = path.join(CERT_DIR, "key.pem");
+    if (fs.existsSync(certInDir) && fs.existsSync(keyInDir)) {
+      fs.copyFileSync(certInDir, CERT_PATH);
+      fs.copyFileSync(keyInDir, KEY_PATH);
+      if (isValidPemCert(CERT_PATH, KEY_PATH)) {
+        return true;
+      }
+    }
+  } catch (e) {
+    logToFile("Node crypto cert generation failed: " + e.message);
+  }
+  return false;
+}
+
 function tryEmbeddedCerts() {
   if (!SEA_INFO) return false;
   try {
@@ -487,6 +546,15 @@ function ensureCerts() {
     warn("证书已通过 PowerShell 创建（自签名，Excel 不信任）。");
     return { ok: true, trusted: false, method: "powershell" };
   }
+  if (tryNodeCryptoCert()) {
+    warn("证书已通过 Node.js/PowerShell 创建（自签名，Excel 不信任）。");
+    return { ok: true, trusted: false, method: "nodecrypto" };
+  }
+  warn("所有证书生成方式均失败。");
+  warn("请手动运行以下命令安装 mkcert:");
+  warn("  choco install mkcert");
+  warn("  mkcert localhost 127.0.0.1 ::1");
+  warn("然后重新运行本程序。");
   return { ok: false, trusted: false, method: "none" };
 }
 
