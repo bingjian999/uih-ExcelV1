@@ -12,6 +12,31 @@
 - [v1.0.3](https://github.com/bingjian999/uih-ExcelV1/releases/tag/v1.0.3) - 2026-06-25
 - [v1.0.4](https://github.com/bingjian999/uih-ExcelV1/releases/tag/v1.0.4) - 2026-06-25
 - [v1.0.5](https://github.com/bingjian999/uih-ExcelV1/releases/tag/v1.0.5) - 2026-06-25
+- [v1.0.6](https://github.com/bingjian999/uih-ExcelV1/releases/tag/v1.0.6) - 2026-06-25
+
+---
+
+## [1.0.6] - 2026-06-25 (hotfix)
+
+### 修复（Fixed）
+
+- **关键 Bug：虚拟机证书生成全部失败**：v1.0.5 的 `tryNodeCryptoCert()` 在虚拟机上仍然失败（PowerShell 旧版不支持 `ExportPkcs8PrivateKey` 或 `New-SelfSignedCertificate` 不可用），导致 mkcert/openssl/PowerShell/NodeCrypto 四种方式全部失败，EXE 退出码 1
+  - 根本原因：虚拟机环境受限，无法通过任何外部工具或 PowerShell cmdlet 生成证书
+  - 终极修复：在 EXE 中嵌入预生成的自签名证书（10 年有效期，localhost + 127.0.0.1），`tryEmbeddedCerts()` 首次运行时直接提取使用，**零外部依赖**
+  - 之前 `cert.pem`/`key.pem` 是 98 字节的占位符（小于 100 字节阈值被跳过），现在替换为真实的 1180 字节证书 + 1704 字节私钥
+
+### 构建（Built）
+
+- 基底：v1.0.0 EXE (已知工作的 Node.js SEA 基底)
+- EXE 大小：86,806,016 bytes (~82.8 MB)
+- dist.version：`v1.0.6`
+- 内嵌证书：cert.pem (1180 bytes, 10年有效期) + key.pem (1704 bytes, RSA 2048)
+- 下载地址：[UIH_AI_Base_PI-v1.0.6.exe](https://github.com/bingjian999/uih-ExcelV1/releases/download/v1.0.6/UIH_AI_Base_PI-v1.0.6.exe)
+
+### 验证
+
+- 本机测试：EXE 启动成功，使用内嵌证书，HTTPS 服务器正常运行
+- 嵌入证书通过 `tryEmbeddedCerts()` 在首次运行时自动提取，无需任何外部工具
 
 ---
 
