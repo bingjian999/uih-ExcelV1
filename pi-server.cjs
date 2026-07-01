@@ -39,7 +39,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const os = require("node:os");
 const net = require("node:net");
-const { execFileSync, spawnSync } = require("node:child_process");
+const { execFileSync, spawnSync, spawn } = require("node:child_process");
 const { lookup: dnsLookup } = require("node:dns/promises");
 const { Readable } = require("node:stream");
 const crypto = require("node:crypto");
@@ -1323,13 +1323,17 @@ function generateSideloadXlsx(addinId, addinVersion) {
 
 function launchExcelWithSideload(sideloadPath) {
   try {
-    // Use PowerShell Start-Process to open the xlsx with the default app (Excel)
+    // Use spawn (async) instead of spawnSync to avoid blocking the event loop.
+    // spawnSync blocks Node.js, preventing the HTTPS server from responding
+    // to Excel's requests to load the taskpane.
     const psScript = `Start-Process -FilePath '${sideloadPath.replace(/'/g, "''")}'`;
-    spawnSync("powershell", ["-NoProfile", "-Command", psScript], {
+    const child = spawn("powershell", ["-NoProfile", "-Command", psScript], {
       encoding: "utf8",
       shell: true,
-      timeout: 10000,
+      detached: true,
+      stdio: "ignore",
     });
+    child.unref();
     log("已启动 Excel 并加载 sideload 文件。");
     return true;
   } catch (e) {
@@ -1437,12 +1441,18 @@ async function main() {
     setTimeout(() => {
       try {
         autoSideload(manifestFile);
+        log("自动 sideload 完成，服务器继续运行。");
       } catch (e) {
         warn("自动 sideload 失败 (非致命):", e.message);
         warn("您可通过 Excel > 插入 > 我的加载项 手动加载。");
       }
     }, 1500);
   });
+
+  // Heartbeat: confirm server is alive every 30 seconds
+  setInterval(() => {
+    logToFile(`[heartbeat] 服务器运行中，端口 ${PORT}`);
+  }, 30000);
 
   // 6. start CORS proxy server (port 3003 — eliminates need for npx pi-for-excel-proxy)
   let proxyServer;
