@@ -48,7 +48,7 @@ export function createDisclosureBar(options: DisclosureBarOptions): HTMLElement 
 
   const text = document.createElement("div");
   text.className = "pi-disclosure-bar__text";
-  text.textContent = "Pi can search the web, use extensions, and connect to external services.";
+  text.textContent = "联影AI 可以搜索网页、使用扩展和连接外部服务。";
   bar.appendChild(text);
 
   // --- Expandable picker (hidden by default) ---
@@ -57,10 +57,10 @@ export function createDisclosureBar(options: DisclosureBarOptions): HTMLElement 
   bar.appendChild(picker);
 
   const toggleRows: { label: string; sublabel: string }[] = [
-    { label: "Web search & page fetch", sublabel: "Search engines and read web pages" },
-    { label: "Extensions & plugins", sublabel: "Sidebar tools and custom commands" },
-    { label: "External services (MCP)", sublabel: "Connect to tool servers you configure" },
-    { label: "Skills", sublabel: "Instruction documents the AI follows" },
+    { label: "网页搜索和页面抓取", sublabel: "搜索引擎和读取网页" },
+    { label: "扩展和插件", sublabel: "侧边栏工具和自定义命令" },
+    { label: "外部服务 (MCP)", sublabel: "连接到你配置的工具服务器" },
+    { label: "技能", sublabel: "AI 遵循的指令文档" },
   ];
 
   for (const row of toggleRows) {
@@ -84,13 +84,13 @@ export function createDisclosureBar(options: DisclosureBarOptions): HTMLElement 
 
   const gotItBtn = document.createElement("button");
   gotItBtn.className = "pi-overlay-btn pi-overlay-btn--primary pi-overlay-btn--compact";
-  gotItBtn.textContent = "Got it";
+  gotItBtn.textContent = "知道了";
   gotItBtn.addEventListener("click", dismiss);
   actions.appendChild(gotItBtn);
 
   const customizeBtn = document.createElement("button");
   customizeBtn.className = "pi-disclosure-bar__link";
-  customizeBtn.textContent = "Customize";
+  customizeBtn.textContent = "自定义";
   actions.appendChild(customizeBtn);
 
   let hint: HTMLElement;
@@ -98,7 +98,7 @@ export function createDisclosureBar(options: DisclosureBarOptions): HTMLElement 
     const link = document.createElement("button");
     link.type = "button";
     link.className = "pi-disclosure-bar__settings-link";
-    link.textContent = "Change anytime in Settings";
+    link.textContent = "随时在设置中更改";
     link.addEventListener("click", () => {
       dismiss();
       options.onOpenSettings?.();
@@ -107,7 +107,7 @@ export function createDisclosureBar(options: DisclosureBarOptions): HTMLElement 
   } else {
     const span = document.createElement("span");
     span.className = "pi-disclosure-bar__muted";
-    span.textContent = "· Change anytime in Settings";
+    span.textContent = "· 随时在设置中更改";
     hint = span;
   }
   actions.appendChild(hint);
@@ -115,11 +115,11 @@ export function createDisclosureBar(options: DisclosureBarOptions): HTMLElement 
   customizeBtn.addEventListener("click", () => {
     const isVisible = picker.classList.toggle("is-visible");
     if (isVisible) {
-      gotItBtn.textContent = "Done";
+      gotItBtn.textContent = "完成";
       customizeBtn.style.display = "none";
       hint.style.display = "none";
     } else {
-      gotItBtn.textContent = "Got it";
+      gotItBtn.textContent = "知道了";
       customizeBtn.style.display = "";
       hint.style.display = "";
     }
