@@ -345,11 +345,11 @@ function createEmptyState(onUpload: () => void): HTMLDivElement {
 
   const title = document.createElement("div");
   title.className = "pi-files-empty__title";
-  title.textContent = "Give Pi more context";
+  title.textContent = "给联影AI 更多上下文";
 
   const description = document.createElement("p");
   description.className = "pi-files-empty__desc";
-  description.textContent = "Upload documents, data, or reference material to help Pi give better answers.";
+  description.textContent = "上传文档、数据或参考资料，帮助联影AI 给出更好的回答。";
 
   const uploadButton = document.createElement("button");
   uploadButton.type = "button";
