@@ -70,7 +70,7 @@ export function createActionQueue(opts: {
   const runCompactWithIndicator = async () => {
     sidebar.setBusyIndicator(
       "Compacting context…",
-      "Send messages and Pi will see them after compaction",
+      "发送消息，联影AI 将在压缩后看到它们",
     );
     try {
       await opts.runCompact();
@@ -105,7 +105,7 @@ export function createActionQueue(opts: {
     if (name === "compact") {
       sidebar.setBusyIndicator(
         "Compacting context…",
-        "Send messages and Pi will see them after compaction",
+        "发送消息，联影AI 将在压缩后看到它们",
       );
       try {
         await cmd.execute(args);
