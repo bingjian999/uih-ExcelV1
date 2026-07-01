@@ -1099,7 +1099,7 @@ export async function initTaskpane(opts: {
             showErrorBanner(
               errorRoot,
               autoCompactEnabled
-                ? "Context window exceeded — Pi will try compacting older history and retrying once. If this error persists, run /compact, scope your request to a smaller range, or use a larger-context model."
+                ? "Context window exceeded — 联影AI will try compacting older history and retrying once. If this error persists, run /compact, scope your request to a smaller range, or use a larger-context model."
                 : "Context window exceeded. Run /compact to free up context, scope your request to a smaller range, or use a larger-context model.",
             );
           } else if (isLikelyCorsErrorMessage(err)) {
@@ -1372,7 +1372,7 @@ export async function initTaskpane(opts: {
     if (runtime.agent.state.isStreaming) {
       const proceed = await requestConfirmationDialog({
         title: "Stop and close this tab?",
-        message: "Pi is still responding in this tab. Stop and close it?",
+        message: "联影AI is still responding in this tab. Stop and close it?",
         confirmLabel: "Stop and close",
         cancelLabel: "Keep open",
         confirmButtonTone: "danger",
@@ -1770,7 +1770,7 @@ export async function initTaskpane(opts: {
     }
 
     if (result === "busy-blocked") {
-      showToast(`Can't run /${name} while Pi is busy`);
+      showToast(`Can't run /${name} while 联影AI is busy`);
       return;
     }
 
@@ -2008,7 +2008,7 @@ export async function initTaskpane(opts: {
       return;
     }
 
-    const description = trigger.getAttribute("data-tooltip") ?? "Choose how deeply Pi reasons before responding.";
+    const description = trigger.getAttribute("data-tooltip") ?? "Choose how deeply 联影AI reasons before responding.";
 
     toggleThinkingPopover({
       anchor: trigger,
