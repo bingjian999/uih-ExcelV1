@@ -909,7 +909,7 @@ export async function showRulesDialog(opts?: {
       counter.classList.toggle("is-warning", count > USER_RULES_SOFT_LIMIT);
 
       hint.textContent =
-        "Guidance given to Pi in all your conversations. Pi can also update these when you tell it your preferences — e.g. \"always use EUR\".";
+        "在所有对话中给联影AI 的指导。联影AI 也可以更新这些规则...";
       workbookTag.hidden = true;
       return;
     }
