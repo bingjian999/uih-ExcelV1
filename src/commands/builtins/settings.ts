@@ -15,15 +15,15 @@ export interface SettingsCommandActions {
 }
 
 function modeUsageText(): string {
-  return "Usage: /yolo [on|off|toggle|status]";
+  return "用法: /yolo [on|off|toggle|status]";
 }
 
 function modeDescription(mode: ExecutionMode): string {
   if (mode === "yolo") {
-    return `${formatExecutionModeLabel(mode)} mode — Pi applies workbook changes immediately.`;
+    return `${formatExecutionModeLabel(mode)} 模式 — 联影AI 立即应用工作簿更改。`;
   }
 
-  return `${formatExecutionModeLabel(mode)} mode — Pi asks before each workbook change.`;
+  return `${formatExecutionModeLabel(mode)} 模式 — 联影AI 每次工作簿更改前询问。`;
 }
 
 function parseExecutionModeArg(input: string): "status" | "toggle" | ExecutionMode | null {
@@ -69,7 +69,7 @@ export function createSettingsCommands(actions: SettingsCommandActions): SlashCo
     },
     {
       name: "yolo",
-      description: "Toggle execution mode (Auto vs Confirm)",
+      description: "切换执行模式（自动 vs 确认）",
       source: "builtin",
       execute: async (args: string) => {
         const command = parseExecutionModeArg(args);
