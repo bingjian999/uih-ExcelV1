@@ -87,8 +87,8 @@ interface ResolvedSectionFocus {
 }
 
 const SETTINGS_TABS: ReadonlyArray<{ id: SettingsPrimaryTab; label: string }> = [
-  { id: "logins", label: "Providers" },
-  { id: "more", label: "More" },
+  { id: "logins", label: "服务商" },
+  { id: "more", label: "更多" },
 ];
 
 let settingsDialogOpenInFlight: Promise<void> | null = null;
@@ -198,7 +198,7 @@ async function buildProvidersSection(): Promise<HTMLElement> {
   } catch {
     const warning = document.createElement("p");
     warning.className = "pi-overlay-hint pi-overlay-text-warning";
-    warning.textContent = "Saved provider state is temporarily unavailable. You can still connect providers.";
+    warning.textContent = "已保存的服务商状态暂时不可用。您仍可连接服务商。";
     shell.content.appendChild(warning);
   }
 
@@ -278,7 +278,7 @@ function buildProxySection(
   settingsStore: SettingsStore,
   registerCleanup?: SettingsCleanupRegistrar,
 ): HTMLElement {
-  const shell = createSectionShell("Proxy", "proxy");
+  const shell = createSectionShell("代理", "proxy");
 
   const card = document.createElement("div");
   card.className = "pi-overlay-surface pi-settings-proxy-card";
@@ -290,8 +290,8 @@ function buildProxySection(
   let urlSaveTimer: ReturnType<typeof setTimeout> | null = null;
 
   const proxyToggle = createToggleRow({
-    label: "Proxy",
-    sublabel: "Route API calls through a local proxy",
+    label: "代理",
+    sublabel: "通过本地代理路由 API 调用",
     checked: enabled,
     onChange: (checked) => {
       void saveProxyEnabled(checked);
@@ -333,11 +333,11 @@ function buildProxySection(
       enabled = !nextEnabled;
       proxyToggle.input.checked = enabled;
       updateStatus();
-      showToast("Failed to save proxy setting.");
+      showToast("保存代理设置失败。");
       return;
     }
 
-    showToast(enabled ? "Proxy enabled." : "Proxy disabled.");
+    showToast(enabled ? "代理已启用。" : "代理已禁用。");
   };
 
   const saveProxyUrl = async (): Promise<void> => {
@@ -350,7 +350,7 @@ function buildProxySection(
     } catch (error: unknown) {
       validationError = error instanceof Error ? error.message : "Invalid proxy URL.";
       updateStatus();
-      showToast(`Proxy URL not saved: ${validationError}`);
+      showToast(`代理 URL 未保存：${validationError}`);
       return;
     }
 
@@ -365,14 +365,14 @@ function buildProxySection(
     try {
       await settingsStore.set("proxy.url", normalizedUrl);
     } catch {
-      showToast("Failed to save proxy URL.");
+      showToast("保存代理 URL 失败。");
       return;
     }
 
     proxyUrl = normalizedUrl;
     proxyUrlInput.value = normalizedUrl;
     updateStatus();
-    showToast("Proxy URL saved.");
+    showToast("代理 URL 已保存。");
   };
 
   const scheduleProxyUrlSave = (): void => {
@@ -438,7 +438,7 @@ function buildProxySection(
   guideLink.href = PROXY_HELPER_DOCS_URL;
   guideLink.target = "_blank";
   guideLink.rel = "noopener noreferrer";
-  guideLink.textContent = "Install and setup guide";
+  guideLink.textContent = "安装和设置指南";
 
   helper.append(
     "Recommended URL: ",
@@ -473,19 +473,19 @@ function buildProxySection(
 }
 
 function buildExecutionModeSection(registerCleanup?: SettingsCleanupRegistrar): HTMLElement {
-  const shell = createSectionShell("Execution mode", "execution-mode");
+  const shell = createSectionShell("执行模式", "execution-mode");
 
   const card = document.createElement("div");
   card.className = "pi-overlay-surface pi-settings-execution-card";
 
   const autoModeToggle = createToggleRow({
-    label: "Auto mode",
-    sublabel: "Pi applies changes immediately without asking",
+    label: "自动模式",
+    sublabel: "联影AI 立即应用更改，无需确认",
   });
 
   const hint = document.createElement("p");
   hint.className = "pi-overlay-hint pi-settings-execution-hint";
-  hint.textContent = "When off, Pi asks before each change (Confirm mode).";
+  hint.textContent = "关闭后，联影AI 每次更改前询问（确认模式）。";
 
   card.append(autoModeToggle.root, hint);
   shell.content.appendChild(card);
@@ -564,8 +564,8 @@ function buildMoreSection(registerCleanup?: SettingsCleanupRegistrar): HTMLEleme
   modelSwitchCard.className = "pi-overlay-surface pi-settings-model-switch-card";
 
   const modelSwitchToggle = createToggleRow({
-    label: "Fork model switch into new tab",
-    sublabel: "For non-empty chats, open a cloned tab instead of switching this tab in place.",
+    label: "切换模型时新开标签页",
+    sublabel: "对于非空对话，打开克隆标签页而不是原地切换。",
   });
 
   const modelSwitchHint = document.createElement("p");
@@ -685,9 +685,9 @@ export async function showSettingsDialog(options: ShowSettingsDialogOptions = {}
 
     const { header } = createOverlayHeader({
       onClose: dialog.close,
-      closeLabel: "Close settings",
-      title: "Settings",
-      subtitle: "Providers, proxy, and preferences",
+      closeLabel: "关闭设置",
+      title: "设置",
+      subtitle: "服务商、代理和偏好设置",
     });
 
     const body = document.createElement("div");
@@ -696,7 +696,7 @@ export async function showSettingsDialog(options: ShowSettingsDialogOptions = {}
     const tabs = document.createElement("div");
     tabs.className = "pi-overlay-tabs";
     tabs.setAttribute("role", "tablist");
-    tabs.setAttribute("aria-label", "Settings tabs");
+    tabs.setAttribute("aria-label", "设置标签页");
 
     const panels = document.createElement("div");
     panels.className = "pi-settings-panels";
