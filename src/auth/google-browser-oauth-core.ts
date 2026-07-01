@@ -226,8 +226,8 @@ async function loginGoogleOAuth(
   callbacks.onAuth({
     url: authUrl.toString(),
     instructions:
-      "After sign-in, your browser will show a page that says \"can't be reached\" \u2014 that's expected! " +
-      "Copy the full URL from the browser address bar and paste it back in Pi for Excel.",
+      "登录后，浏览器会显示一个 \"无法访问\" 的页面 —— 这是正常的！ " +
+      "请从浏览器地址栏复制完整 URL 并粘贴回联影AI for Excel。",
   });
 
   if (callbacks.signal?.aborted) {
