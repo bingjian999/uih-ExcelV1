@@ -121,7 +121,7 @@ export function renderPluginsTab(args: {
   }));
 
   if (statuses.length === 0) {
-    container.appendChild(createEmptyInline(lucide(Puzzle), "No plugins installed.\nPi can build plugins, or install one from a URL."));
+    container.appendChild(createEmptyInline(lucide(Puzzle), "未安装插件。\n联影AI 可以构建插件，或从 URL 安装。"));
   } else {
     const list = document.createElement("div");
     list.className = "pi-hub-stack";
