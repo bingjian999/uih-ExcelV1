@@ -388,7 +388,7 @@ export async function showRecoveryDialog(opts: {
     if (allCheckpoints.length === 0) {
       const empty = createEmptyInline(
         lucide(Package),
-        "No backups yet\nPi will save snapshots here before making changes to your data.",
+        "暂无备份\n联影AI 在修改数据前会在此保存快照。",
       );
       list.appendChild(empty);
       statusText.textContent = "";
