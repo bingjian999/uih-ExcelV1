@@ -991,34 +991,34 @@ export class PiSidebar extends LitElement {
     return html`
       <div class="pi-utilities-menu" id=${this._utilitiesMenuId} role="menu" aria-label="Settings and tools">
         <button role="menuitem" class="pi-utilities-menu__item" @click=${() => { this._closeUtilitiesMenu(); this.onOpenSettings?.(); }}>
-          <span class="pi-utilities-menu__item-icon" aria-hidden="true">${icon(Wrench, "sm")}</span> Setup
+          <span class="pi-utilities-menu__item-icon" aria-hidden="true">${icon(Wrench, "sm")}</span> 设置
         </button>
         <button role="menuitem" class="pi-utilities-menu__item" @click=${() => { this._closeUtilitiesMenu(); this.onOpenExtensions?.(); }}>
-          <span class="pi-utilities-menu__item-icon" aria-hidden="true">${icon(Puzzle, "sm")}</span> Extensions
+          <span class="pi-utilities-menu__item-icon" aria-hidden="true">${icon(Puzzle, "sm")}</span> 扩展
         </button>
 
         <div class="pi-utilities-menu__divider" role="separator"></div>
 
         <button role="menuitem" class="pi-utilities-menu__item" @click=${() => { this._closeUtilitiesMenu(); this._onOpenFilesWorkspace(); }}>
-          <span class="pi-utilities-menu__item-icon" aria-hidden="true">${icon(FileText, "sm")}</span> Files
+          <span class="pi-utilities-menu__item-icon" aria-hidden="true">${icon(FileText, "sm")}</span> 文件
         </button>
         <button role="menuitem" class="pi-utilities-menu__item" @click=${() => { this._closeUtilitiesMenu(); this.onOpenRules?.(); }}>
-          <span class="pi-utilities-menu__item-icon" aria-hidden="true">${icon(Ruler, "sm")}</span> Rules
+          <span class="pi-utilities-menu__item-icon" aria-hidden="true">${icon(Ruler, "sm")}</span> 规则
         </button>
 
         <div class="pi-utilities-menu__divider" role="separator"></div>
 
         <button role="menuitem" class="pi-utilities-menu__item" @click=${() => { this._closeUtilitiesMenu(); this.onOpenResumePicker?.(); }}>
-          <span class="pi-utilities-menu__item-icon" aria-hidden="true">${icon(RotateCcw, "sm")}</span> Resume session
+          <span class="pi-utilities-menu__item-icon" aria-hidden="true">${icon(RotateCcw, "sm")}</span> 恢复会话
         </button>
         <button role="menuitem" class="pi-utilities-menu__item" @click=${() => { this._closeUtilitiesMenu(); this.onOpenRecovery?.(); }}>
-          <span class="pi-utilities-menu__item-icon" aria-hidden="true">${icon(Archive, "sm")}</span> Backups
+          <span class="pi-utilities-menu__item-icon" aria-hidden="true">${icon(Archive, "sm")}</span> 备份
         </button>
 
         <div class="pi-utilities-menu__divider" role="separator"></div>
 
         <button role="menuitem" class="pi-utilities-menu__item" @click=${() => { this._closeUtilitiesMenu(); this.onOpenShortcuts?.(); }}>
-          <span class="pi-utilities-menu__item-icon" aria-hidden="true">${icon(Keyboard, "sm")}</span> Keyboard shortcuts
+          <span class="pi-utilities-menu__item-icon" aria-hidden="true">${icon(Keyboard, "sm")}</span> 键盘快捷键
         </button>
       </div>
     `;
