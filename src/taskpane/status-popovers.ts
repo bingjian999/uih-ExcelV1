@@ -34,21 +34,21 @@ interface ContextPopoverOptions {
 }
 
 const THINKING_LEVEL_LABELS: Record<ThinkingLevel, string> = {
-  off: "Off",
-  minimal: "Minimal",
-  low: "Low",
-  medium: "Medium",
-  high: "High",
-  xhigh: "Max",
+  off: "关闭",
+  minimal: "最低",
+  low: "低",
+  medium: "中",
+  high: "高",
+  xhigh: "最高",
 };
 
 const THINKING_LEVEL_HINTS: Record<ThinkingLevel, string> = {
-  off: "Fastest — no reasoning step",
-  minimal: "Quick — light reasoning",
-  low: "Fast — moderate reasoning",
-  medium: "Balanced — solid reasoning",
-  high: "Slow — thorough reasoning",
-  xhigh: "Slowest — deepest reasoning",
+  off: "最快 — 无推理步骤",
+  minimal: "快速 — 轻量推理",
+  low: "较快 — 适度推理",
+  medium: "均衡 — 扎实推理",
+  high: "较慢 — 深入推理",
+  xhigh: "最慢 — 最深入推理",
 };
 
 let activePopover: ActivePopoverState | null = null;
@@ -183,7 +183,7 @@ export function toggleThinkingPopover(opts: ThinkingPopoverOptions): void {
 
   const title = document.createElement("h3");
   title.className = "pi-status-popover__title";
-  title.textContent = "Thinking level";
+  title.textContent = "思考级别";
 
   const description = createDescriptionBlock(opts.description);
 
@@ -268,7 +268,7 @@ export function toggleContextPopover(opts: ContextPopoverOptions): void {
 
   const title = document.createElement("h3");
   title.className = "pi-status-popover__title";
-  title.textContent = "Context usage";
+  title.textContent = "上下文用量";
 
   const description = createDescriptionBlock(opts.description);
 
@@ -295,13 +295,13 @@ export function toggleContextPopover(opts: ContextPopoverOptions): void {
     createCommandButton({
       command: "compact",
       title: "Compact conversation",
-      description: "Summarize earlier messages to free space.",
+      description: "总结早期消息以释放空间。",
       onRun: opts.onRunCommand,
     }),
     createCommandButton({
       command: "new",
       title: "Start new chat",
-      description: "Open a fresh tab with empty context.",
+      description: "打开新标签页（空上下文）。",
       onRun: opts.onRunCommand,
     }),
   );
