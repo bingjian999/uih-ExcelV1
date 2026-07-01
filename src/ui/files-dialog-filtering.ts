@@ -71,7 +71,7 @@ export function resolveFilesDialogBadge(file: WorkspaceFileEntry): FilesDialogBa
 
 export function resolveFilesDialogSourceLabel(file: WorkspaceFileEntry): string {
   if (isFilesDialogBuiltInDoc(file)) {
-    return "Pi documentation";
+    return "联影AI 文档";
   }
 
   if (isAgentWrittenNotesFilePath(file.path)) {
