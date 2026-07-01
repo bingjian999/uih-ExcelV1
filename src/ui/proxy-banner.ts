@@ -43,14 +43,14 @@ export function createProxyBanner(): ProxyBannerHandle {
   warningIcon.setAttribute("aria-hidden", "true");
 
   const textLabel = document.createElement("span");
-  textLabel.textContent = "Proxy not running · some features won't work.";
+  textLabel.textContent = "代理未运行 · 部分功能将不可用。";
 
   text.append(warningIcon, textLabel);
 
   const action = document.createElement("button");
   action.type = "button";
   action.className = "pi-proxy-banner__action";
-  action.textContent = "How to fix →";
+  action.textContent = "如何修复 →";
 
   topRow.append(text, action);
 
@@ -60,7 +60,7 @@ export function createProxyBanner(): ProxyBannerHandle {
 
   const detailsIntro = document.createElement("p");
   detailsIntro.className = "pi-proxy-banner__details-text";
-  detailsIntro.textContent = "Run this command in a terminal and keep that window open:";
+  detailsIntro.textContent = "在终端中运行此命令并保持窗口打开：";
 
   const codeRow = document.createElement("div");
   codeRow.className = "pi-proxy-banner__code";
@@ -76,14 +76,14 @@ export function createProxyBanner(): ProxyBannerHandle {
 
   const renderCopyIcon = (): void => {
     copyButton.replaceChildren(lucide(Copy));
-    copyButton.title = "Copy command";
-    copyButton.setAttribute("aria-label", "Copy command");
+    copyButton.title = "复制命令";
+    copyButton.setAttribute("aria-label", "复制命令");
   };
 
   const renderCopiedIcon = (): void => {
     copyButton.replaceChildren(lucide(Check));
-    copyButton.title = "Copied";
-    copyButton.setAttribute("aria-label", "Copied");
+    copyButton.title = "已复制";
+    copyButton.setAttribute("aria-label", "已复制");
   };
 
   renderCopyIcon();
@@ -115,14 +115,14 @@ export function createProxyBanner(): ProxyBannerHandle {
 
   const hint = document.createElement("p");
   hint.className = "pi-proxy-banner__hint";
-  hint.textContent = "Open Terminal · paste · press Enter · type y and Enter if prompted · leave open";
+  hint.textContent = "打开终端 · 粘贴 · 按 Enter · 如提示输入 y 并按 Enter · 保持打开";
 
   const guideLink = document.createElement("a");
   guideLink.className = "pi-proxy-banner__link";
   guideLink.href = INSTALL_GUIDE_URL;
   guideLink.target = "_blank";
   guideLink.rel = "noopener noreferrer";
-  guideLink.textContent = "No Node.js? See install guide →";
+  guideLink.textContent = "没有 Node.js？查看安装指南 →";
 
   details.append(detailsIntro, codeRow, hint, guideLink);
 
@@ -130,7 +130,7 @@ export function createProxyBanner(): ProxyBannerHandle {
     const shouldOpen = details.hidden;
     details.hidden = !shouldOpen;
     root.classList.toggle("is-open", shouldOpen);
-    action.textContent = shouldOpen ? "Hide steps" : "How to fix →";
+    action.textContent = shouldOpen ? "隐藏步骤" : "如何修复 →";
   });
 
   root.append(topRow, details);
@@ -142,7 +142,7 @@ export function createProxyBanner(): ProxyBannerHandle {
     if (!shouldShow) {
       details.hidden = true;
       root.classList.remove("is-open");
-      action.textContent = "How to fix →";
+      action.textContent = "如何修复 →";
     }
   };
 
