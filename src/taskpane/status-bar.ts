@@ -58,7 +58,7 @@ function renderStatusBar(
   if (!el) return;
 
   if (!agent) {
-    const emptyMarkup = `<span class="pi-status-ctx">No active session</span>`;
+    const emptyMarkup = `<span class="pi-status-ctx">无活动会话</span>`;
     const emptySignature = "no-agent";
     if (el.getAttribute("data-status-signature") !== emptySignature) {
       el.innerHTML = emptyMarkup;
@@ -71,7 +71,7 @@ function renderStatusBar(
 
   // Model alias
   const model = state.model;
-  const modelAlias = model ? (model.name || model.id) : "Select model";
+  const modelAlias = model ? (model.name || model.id) : "选择模型";
   const modelAliasEscaped = escapeHtml(modelAlias);
 
   // Context usage
@@ -91,7 +91,7 @@ function renderStatusBar(
 
   // Thinking level
   const thinkingLabels: Record<string, string> = {
-    off: "off", minimal: "min", low: "low", medium: "med", high: "high", xhigh: "max",
+    off: "关闭", minimal: "最低", low: "低", medium: "中", high: "高", xhigh: "最高",
   };
   const thinkingLevel = thinkingLabels[state.thinkingLevel] || state.thinkingLevel;
 
@@ -127,12 +127,12 @@ function renderStatusBar(
   const modeBadgeClass = modeIsAuto ? " pi-status-mode--auto" : " pi-status-mode--confirm";
   const modeLabel = modeIsAuto ? "auto" : "confirm";
   const modeTooltip = modeIsAuto
-    ? "Auto: Pi applies workbook changes immediately. Click to switch to Confirm."
-    : "Confirm: Pi asks before each workbook change. Click to switch to Auto.";
+    ? "自动模式：联影AI 立即应用工作簿更改。点击切换到确认模式。"
+    : "确认模式：联影AI 每次更改前询问。点击切换到自动模式。";
   const modeBadge = `<button type="button" class="pi-status-mode pi-status-clickable pi-status-tooltip--right${modeBadgeClass}" data-tooltip="${modeTooltip}"><span>${modeLabel}</span><span class="pi-status-affordance" aria-hidden="true">${affordanceChevronSvg}</span></button>`;
 
   const thinkingTooltip = escapeAttr(
-    "How deeply Pi reasons before answering — higher is slower but more thorough. Click to choose, or ⇧Tab to cycle.",
+    "联影AI 答题前的思考深度 — 越高越慢但更深入。点击选择，或 ⇧Tab 循环切换。",
   );
 
   const ctxPopoverDesc = escapeAttr(ctxDescription);
@@ -142,7 +142,7 @@ function renderStatusBar(
   const nextMarkup = `
     <div class="pi-status-main">
       <button type="button" class="pi-status-model pi-status-clickable pi-status-tooltip--left" data-tooltip="Switch the AI model for this session.">
-        <span class="pi-status-model__mark">π</span>
+        <span class="pi-status-model__mark">U</span>
         <span class="pi-status-model__name">${modelAliasEscaped}</span>
         ${chevronSvg}
       </button>
@@ -353,14 +353,14 @@ export function injectStatusBar(opts: {
 
 export function flashThinkingLevel(level: string, color: string): void {
   const labels: Record<string, string> = {
-    off: "Off",
-    minimal: "Min",
-    low: "Low",
-    medium: "Medium",
-    high: "High",
-    xhigh: "Max",
+    off: "关闭",
+    minimal: "最低",
+    low: "低",
+    medium: "中",
+    high: "高",
+    xhigh: "最高",
   };
-  showToast(`Thinking: ${labels[level] || level} (next turn)`, 1500);
+  showToast(`思考级别: ${labels[level] || level} (下一轮生效)`, 1500);
 
   const el = document.querySelector<HTMLElement>(".pi-status-thinking");
   if (!el) return;
