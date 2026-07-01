@@ -81,31 +81,31 @@ export async function showWelcomeLogin(providerKeys: ProviderKeysStore): Promise
     const subtitleId = `${WELCOME_LOGIN_OVERLAY_ID}-subtitle`;
 
     const logo = createElement("div", "pi-welcome-logo");
-    logo.textContent = "π";
+    logo.textContent = "U";
 
     const title = createElement("h2", "pi-welcome-title");
     title.id = titleId;
-    title.textContent = "Pi for Excel";
+    title.textContent = "联影AI for Excel";
 
     const subtitle = createElement("p", "pi-welcome-subtitle");
     subtitle.id = subtitleId;
-    subtitle.textContent = "Connect an AI provider to get started";
+    subtitle.textContent = "连接 AI 服务商即可开始";
 
     const intro = createElement("p", "pi-welcome-intro");
-    intro.textContent = "An AI agent that reads your spreadsheet, makes changes, and does the research — using models you already have.";
+    intro.textContent = "AI 助手可以读取电子表格、进行修改、执行研究 — 使用您已有的模型。";
 
     const providerSectionTitle = createElement("p", "pi-welcome-section-title");
-    providerSectionTitle.textContent = "Choose a provider";
+    providerSectionTitle.textContent = "选择服务商";
 
     const providerList = createElement("div", "pi-welcome-providers");
 
     const customGatewayButton = createElement("button", "pi-welcome-custom-gateway");
     customGatewayButton.type = "button";
-    customGatewayButton.textContent = "Use a custom OpenAI-compatible gateway";
+    customGatewayButton.textContent = "使用自定义 OpenAI 兼容网关";
 
     const proxyToggle = createElement("button", "pi-welcome-proxy-toggle");
     proxyToggle.type = "button";
-    proxyToggle.textContent = "Having login trouble? Configure local proxy";
+    proxyToggle.textContent = "登录有问题？配置本地代理";
     proxyToggle.setAttribute("aria-expanded", "false");
 
     const proxyPanel = createElement("section", "pi-welcome-proxy");
@@ -114,13 +114,13 @@ export async function showWelcomeLogin(providerKeys: ProviderKeysStore): Promise
     const proxyTopRow = createElement("div", "pi-welcome-proxy__row");
 
     const proxyTitle = createElement("div", "pi-welcome-proxy__title");
-    proxyTitle.textContent = "Local HTTPS proxy";
+    proxyTitle.textContent = "本地 HTTPS 代理";
 
     const proxyToggleLabel = createElement("label", "pi-welcome-proxy__toggle");
     const proxyEnabledEl = createElement("input", "pi-welcome-proxy__enabled");
     proxyEnabledEl.type = "checkbox";
     const proxyToggleText = createElement("span");
-    proxyToggleText.textContent = "Enabled";
+    proxyToggleText.textContent = "已启用";
     proxyToggleLabel.append(proxyEnabledEl, proxyToggleText);
 
     proxyTopRow.append(proxyTitle, proxyToggleLabel);
@@ -132,7 +132,7 @@ export async function showWelcomeLogin(providerKeys: ProviderKeysStore): Promise
 
     const proxySaveEl = createElement("button", "pi-welcome-proxy__save");
     proxySaveEl.type = "button";
-    proxySaveEl.textContent = "Save";
+    proxySaveEl.textContent = "保存";
 
     proxyUrlRow.append(proxyUrlEl, proxySaveEl);
 
@@ -144,7 +144,7 @@ export async function showWelcomeLogin(providerKeys: ProviderKeysStore): Promise
     proxyGuideLink.href = PROXY_HELPER_DOCS_URL;
     proxyGuideLink.target = "_blank";
     proxyGuideLink.rel = "noopener noreferrer";
-    proxyGuideLink.textContent = "Step-by-step guide";
+    proxyGuideLink.textContent = "分步指南";
 
     proxyHint.append(
       "Needed only when OAuth login is blocked by CORS. Keep this URL at ",
@@ -179,7 +179,7 @@ export async function showWelcomeLogin(providerKeys: ProviderKeysStore): Promise
           void showSettingsDialog({ section: "custom-gateways" });
         })
         .catch(() => {
-          showToast("Couldn't open custom gateway settings.");
+          showToast("无法打开自定义网关设置。");
         });
     });
 
@@ -188,8 +188,8 @@ export async function showWelcomeLogin(providerKeys: ProviderKeysStore): Promise
       proxyPanel.hidden = !willOpen;
       proxyToggle.setAttribute("aria-expanded", willOpen ? "true" : "false");
       proxyToggle.textContent = willOpen
-        ? "Hide local proxy settings"
-        : "Having login trouble? Configure local proxy";
+        ? "隐藏本地代理设置"
+        : "登录有问题？配置本地代理";
 
       if (willOpen) {
         proxyUrlEl.focus();
@@ -214,9 +214,9 @@ export async function showWelcomeLogin(providerKeys: ProviderKeysStore): Promise
         const storage = getAppStorage();
         await storage.settings.set("proxy.enabled", proxyEnabledEl.checked);
         await storage.settings.set("proxy.url", proxyUrlEl.value.trim());
-        showToast("Proxy settings saved");
+        showToast("代理设置已保存");
       } catch {
-        showToast("Failed to save proxy settings");
+        showToast("代理设置保存失败");
       }
     };
 
@@ -240,7 +240,7 @@ export async function showWelcomeLogin(providerKeys: ProviderKeysStore): Promise
             const updated = await providerKeys.list();
             setActiveProviders(new Set(updated));
             document.dispatchEvent(new CustomEvent("pi:providers-changed"));
-            showToast(`${label} connected — try “Explain this workbook”.`, 3200);
+            showToast(`${label} 已连接 — 试试“解释此工作簿”。`, 3200);
             closeOverlay();
           })();
         },
