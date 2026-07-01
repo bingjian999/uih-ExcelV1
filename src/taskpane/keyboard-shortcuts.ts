@@ -163,7 +163,7 @@ function buildKeydownContext(args: {
 
 export function getThinkingLevels(agent: Agent): ThinkingLevel[] {
   const model = agent.state.model;
-  if (!model || !model.reasoning) return ["off"];
+  if (!model) return ["off"];
 
   const provider = model.provider;
   if (provider === "openai" || provider === "openai-codex") {
@@ -178,6 +178,9 @@ export function getThinkingLevels(agent: Agent): ThinkingLevel[] {
     return levels;
   }
 
+  // For custom/local models (ollama, OpenAI-compatible gateway, etc.),
+  // always show thinking levels — many models support reasoning via
+  // parameters even if not explicitly marked.
   return ["off", "low", "medium", "high"];
 }
 
