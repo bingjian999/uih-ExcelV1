@@ -14,7 +14,7 @@ echo ------------------------------------------------------------
 echo.
 
 REM Run the EXE and capture exit code
-"%~dp0UIH_AI_Base_PI-v1.1.0.exe" 2>&1
+"%~dp0UIH_AI_Base_PI-v1.1.1.exe" 2>&1
 set EXITCODE=%ERRORLEVEL%
 
 echo.
