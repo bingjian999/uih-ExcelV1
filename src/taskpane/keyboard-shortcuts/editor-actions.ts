@@ -175,7 +175,7 @@ export function handleSlashCommandExecution(args: {
   if (result === "busy-blocked") {
     event.preventDefault();
     event.stopImmediatePropagation();
-    showToast(`Can't run /${cmdName} while Pi is busy`);
+    showToast(`无法运行 /${cmdName}，联影AI 正忙`);
     return true;
   }
 
