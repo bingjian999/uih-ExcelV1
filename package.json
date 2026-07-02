@@ -31,7 +31,7 @@
     "uih:icons": "node scripts/_uih/gen-icons.cjs"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.104.0",
+    "@anthropic-ai/sdk": "^0.107.0",
     "@earendil-works/pi-agent-core": "0.79.1",
     "@earendil-works/pi-ai": "0.79.1",
     "@earendil-works/pi-web-ui": "0.75.3",
