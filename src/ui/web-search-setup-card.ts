@@ -28,7 +28,7 @@ import { validateWebSearchApiKey } from "../tools/web-search.js";
 import { AlertTriangle, Check, Copy, Search, lucide } from "./lucide-icons.js";
 import { showToast } from "./toast.js";
 
-const PROXY_COMMAND = "npx pi-for-excel-proxy";
+const PROXY_COMMAND = "npx uih-excel-proxy";
 
 interface ProxyStepOptions {
   stepNumber: number | null;
