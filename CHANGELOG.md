@@ -1,259 +1,121 @@
-# 更新日志
+# UIH-Excel-V1 修改归档
 
-本项目的所有重要变更都会记录在此文件。
+## 版本历史
 
-格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
-版本号遵循 [语义化版本 2.0.0](https://semver.org/lang/zh-CN/) 规范。
+### v1.2.2 (2026-07-02)
+- 替换所有用户可见的 `pi-for-excel-proxy` → `uih-excel-proxy`
+- 替换 `pi-for-excel-python-bridge` → `uih-excel-python-bridge`
+- 替换 `pi-for-excel-tmux-bridge` → `uih-excel-tmux-bridge`
 
-每个版本的 GitHub Release 链接：
-- [v1.0.0](https://github.com/bingjian999/uih-ExcelV1/releases/tag/v1.0.0) - 2026-06-21
-- [v1.0.1](https://github.com/bingjian999/uih-ExcelV1/releases/tag/v1.0.1) - 2026-06-25
-- [v1.0.2](https://github.com/bingjian999/uih-ExcelV1/releases/tag/v1.0.2) - 2026-06-25
-- [v1.0.3](https://github.com/bingjian999/uih-ExcelV1/releases/tag/v1.0.3) - 2026-06-25
-- [v1.0.4](https://github.com/bingjian999/uih-ExcelV1/releases/tag/v1.0.4) - 2026-06-25
-- [v1.0.5](https://github.com/bingjian999/uih-ExcelV1/releases/tag/v1.0.5) - 2026-06-25
-- [v1.0.6](https://github.com/bingjian999/uih-ExcelV1/releases/tag/v1.0.6) - 2026-06-25
-- [v1.0.7](https://github.com/bingjian999/uih-ExcelV1/releases/tag/v1.0.7) - 2026-06-25
+### v1.2.1 (2026-07-02)
+- 替换空状态 logo `π` → `UIH`
+- 修复 package.json BOM 头导致 Vite 构建失败
 
----
+### v1.2.0 (2026-07-02)
+- 全面中文化：27 个文件，500+ 处英文 UI 文本
+- 所有 "Pi" 引用替换为 "联影AI"
 
-## [1.0.7] - 2026-06-25 (hotfix)
+### v1.1.3 (2026-07-01)
+- 修复构建流程：完整执行 Vite build + uih:build:blob + SEA + postject
+- 验证中文和思考级别修复进入构建产物
 
-### 修复（Fixed）
+### v1.1.0-v1.1.2 (2026-07-01)
+- 思考级别修复：移除 model.reasoning 检查
+- 修复 spawn 未定义导致闪退
+- 代理横幅、设置页等中文化
 
-- **关键 Bug：Excel 不信任自签名证书**：v1.0.6 嵌入了预生成的自签名证书，EXE 不再闪退，但 Excel 报"由于内容未经有效安全证书签名，因此已被阻止"
-  - 根因：自签名证书未安装到 Windows 受信任根证书存储，Excel 拒绝加载
-  - 修复：新增 `trustCert()` 函数，使用 PowerShell `X509Store` 将证书自动导入到 Windows "受信任的根证书颁发机构"存储
-  - 双重策略：优先尝试 `LocalMachine` 存储（需要管理员权限），失败后自动回退到 `CurrentUser` 存储（无需管理员）
-  - `ensureCerts()` 在使用内嵌证书、openssl、PowerShell、NodeCrypto 生成的证书后，均自动调用 `trustCert()`
-
-### 构建（Built）
-
-- 基底：v1.0.0 EXE (已知工作的 Node.js SEA 基底)
-- EXE 大小：86,809,088 bytes (~82.8 MB)
-- dist.version：`v1.0.7`
-- 下载地址：[UIH_AI_Base_PI-v1.0.7.exe](https://github.com/bingjian999/uih-ExcelV1/releases/download/v1.0.7/UIH_AI_Base_PI-v1.0.7.exe)
-
-### 验证
-
-- 本机测试：EXE 启动成功，`trustCert()` 被调用，证书安装到信任存储
-- LocalMachine 需要管理员权限，CurrentUser 存储无需管理员
-- HTTPS 服务器正常运行
-
-### 使用方法
-
-在虚拟机上**以管理员身份**运行 `UIH_AI_Base_PI-Debug.bat`（右键 > 以管理员身份运行），这样证书可以安装到 LocalMachine 存储，所有用户都能信任。
+### v1.0.7 (2026-06-30)
+- 证书自动安装到 Windows 受信任根证书存储
+- CORS 代理内置
 
 ---
 
-## [1.0.6] - 2026-06-25 (hotfix)
+## 修改文件清单
 
-### 修复（Fixed）
+### 1. 品牌替换 (Pi → 联影AI / UIH)
 
-- **关键 Bug：虚拟机证书生成全部失败**：v1.0.5 的 `tryNodeCryptoCert()` 在虚拟机上仍然失败（PowerShell 旧版不支持 `ExportPkcs8PrivateKey` 或 `New-SelfSignedCertificate` 不可用），导致 mkcert/openssl/PowerShell/NodeCrypto 四种方式全部失败，EXE 退出码 1
-  - 根本原因：虚拟机环境受限，无法通过任何外部工具或 PowerShell cmdlet 生成证书
-  - 终极修复：在 EXE 中嵌入预生成的自签名证书（10 年有效期，localhost + 127.0.0.1），`tryEmbeddedCerts()` 首次运行时直接提取使用，**零外部依赖**
-  - 之前 `cert.pem`/`key.pem` 是 98 字节的占位符（小于 100 字节阈值被跳过），现在替换为真实的 1180 字节证书 + 1704 字节私钥
+| 文件 | 修改内容 |
+|------|---------|
+| `src/ui/pi-sidebar.ts` | π logo → UIH；侧边栏菜单中文化；标签页右键菜单中文化；上下文胶囊中文化；空状态标语中文化 |
+| `src/ui/proxy-banner.ts` | 代理横幅中文化；`pi-for-excel-proxy` → `uih-excel-proxy` |
+| `src/ui/provider-login.ts` | 服务商登录页中文化；`pi-for-excel-proxy` → `uih-excel-proxy` |
+| `src/ui/web-search-setup-card.ts` | 网页搜索设置中文化；`pi-for-excel-proxy` → `uih-excel-proxy` |
+| `src/ui/bridge-setup-card.ts` | 桥接设置中文化；`pi-for-excel-*-bridge` → `uih-excel-*-bridge` |
+| `src/ui/disclosure-bar.ts` | 披露栏中文化 |
+| `src/ui/pi-input.ts` | 输入框占位符中文化 |
+| `src/ui/loading.ts` | 加载文本中文化 |
+| `src/ui/files-dialog.ts` | 文件对话框全面中文化 |
+| `src/ui/files-dialog-filtering.ts` | 文件筛选标签和分区标题中文化 |
+| `src/taskpane/welcome-login.ts` | 欢迎页中文化；logo π → U |
+| `src/taskpane/status-bar.ts` | 状态栏中文化；思考级别标签中文化 |
+| `src/taskpane/status-popovers.ts` | 思考级别弹窗中文化 |
+| `src/taskpane/init.ts` | 初始化消息中文化；快捷操作按钮中文化 |
+| `src/taskpane/action-queue.ts` | 动作队列中文化 |
+| `src/taskpane/keyboard-shortcuts.ts` | 思考级别修复（移除 model.reasoning 检查） |
+| `src/taskpane/keyboard-shortcuts/editor-actions.ts` | 编辑器操作提示中文化 |
 
-### 构建（Built）
+### 2. 命令和设置中文化
 
-- 基底：v1.0.0 EXE (已知工作的 Node.js SEA 基底)
-- EXE 大小：86,806,016 bytes (~82.8 MB)
-- dist.version：`v1.0.6`
-- 内嵌证书：cert.pem (1180 bytes, 10年有效期) + key.pem (1704 bytes, RSA 2048)
-- 下载地址：[UIH_AI_Base_PI-v1.0.6.exe](https://github.com/bingjian999/uih-ExcelV1/releases/download/v1.0.6/UIH_AI_Base_PI-v1.0.6.exe)
+| 文件 | 修改内容 |
+|------|---------|
+| `src/commands/builtins/settings-overlay.ts` | 设置页全面中文化 |
+| `src/commands/builtins/settings.ts` | 设置命令中文化 |
+| `src/commands/builtins/shortcuts-overlay.ts` | 键盘快捷键弹窗中文化 |
+| `src/commands/builtins/recovery-overlay.ts` | 备份弹窗全面中文化 |
+| `src/commands/builtins/resume-overlay.ts` | 恢复会话弹窗中文化 |
+| `src/commands/builtins/rules-overlay.ts` | 规则编辑器中文化 |
+| `src/commands/builtins/extensions-hub-overlay.ts` | 扩展页中文化 |
+| `src/commands/builtins/extensions-hub-connections.ts` | 连接管理中文化；桥接命令替换 |
+| `src/commands/builtins/extensions-hub-plugins.ts` | 插件管理中文化 |
+| `src/commands/builtins/extensions-hub-skills.ts` | 技能管理中文化 |
+| `src/commands/builtins/extensions-hub-extension-connections.ts` | 扩展连接中文化 |
+| `src/commands/builtins/experimental-overlay.ts` | 实验性功能弹窗中文化 |
+| `src/commands/builtins/experimental.ts` | 实验性命令中文化 |
+| `src/commands/builtins/custom-gateway-settings.ts` | 自定义网关设置中文化 |
+| `src/commands/builtins/session.ts` | 会话命令中文化 |
+| `src/commands/builtins/export.ts` | 导出命令中文化 |
+| `src/commands/builtins/debug.ts` | 调试命令中文化 |
+| `src/commands/builtins/clipboard.ts` | 剪贴板命令中文化 |
+| `src/commands/builtins/model.ts` | 模型命令中文化 |
 
-### 验证
+### 3. 认证和工具
 
-- 本机测试：EXE 启动成功，使用内嵌证书，HTTPS 服务器正常运行
-- 嵌入证书通过 `tryEmbeddedCerts()` 在首次运行时自动提取，无需任何外部工具
+| 文件 | 修改内容 |
+|------|---------|
+| `src/auth/anthropic-browser-oauth.ts` | OAuth 登录页中文化 |
+| `src/auth/google-browser-oauth-core.ts` | OAuth 登录页中文化 |
+| `src/auth/openai-codex-browser-oauth.ts` | OAuth 登录页中文化 |
+| `src/tools/external-fetch.ts` | 代理命令 `pi-for-excel-proxy` → `uih-excel-proxy` |
 
----
+### 4. 服务器和配置
 
-## [1.0.5] - 2026-06-25 (hotfix)
-
-### 修复（Fixed）
-
-- **关键 Bug：虚拟机证书生成失败**：v1.0.4 修复了证书验证，但虚拟机上 mkcert 未安装、openssl 不可用、PowerShell 旧版不支持 `ExportPkcs8PrivateKey`，三种证书生成方式全部失败，EXE 退出码 1
-  - 错误日志：`证书创建失败。exit=1` + `所有证书生成方式均失败`
-  - 修复：新增 `tryNodeCryptoCert()` 函数，使用 PowerShell `New-SelfSignedCertificate` + `[Convert]::ToBase64String` 直接导出 PEM 格式证书，不依赖 openssl
-  - PowerShell 脚本使用 `[char]10` 替代反引号 `` `n `` 拼接换行符，避免 JS 模板字符串语法冲突
-  - 证书生成后立即用 `isValidPemCert()` 验证，确保可用
-
-### 构建（Built）
-
-- 基底：v1.0.0 EXE (已知工作的 Node.js SEA 基底)
-- EXE 大小：86,803,456 bytes (~82.8 MB)
-- dist.version：`v1.0.5`
-- 下载地址：[UIH_AI_Base_PI-v1.0.5.exe](https://github.com/bingjian999/uih-ExcelV1/releases/download/v1.0.5/UIH_AI_Base_PI-v1.0.5.exe)
-
-### 验证
-
-- 本机测试：EXE 启动成功，证书验证通过，HTTPS 服务器正常运行
-- 新增 `tryNodeCryptoCert()` 作为 mkcert/openssl/PowerShell 之后的第四道防线
-
----
-
-## [1.0.4] - 2026-06-25 (hotfix)
-
-### 修复（Fixed）
-
-- **关键 Bug：虚拟机证书崩溃**：在其他电脑/虚拟机上首次运行 EXE 时，提取的占位符 `cert.pem`/`key.pem` 为空文件，`https.createServer` 尝试解析空的 PEM 内容时抛出 `ERR_OSSL_PEM_BAD_BASE64_DECODE` 异常导致进程崩溃
-  - 错误信息：`error:04800064:PEM routines::bad base64 decode`
-  - 崩溃位置：`pi-server.cjs:1252` — `https.createServer({ key, cert })`
-  - 根因：`ensureCerts()` 只检查文件是否存在，不验证内容有效性
-  - 修复 1：新增 `isValidPemCert()` 函数，验证证书文件包含 `-----BEGIN` 头且长度 > 100 字节
-  - 修复 2：`ensureCerts()` 检测到无效证书时自动删除并重新生成
-  - 修复 3：`tryEmbeddedCerts()` 增加长度检查，空占位符文件不会被当作有效证书
-  - 修复 4：`https.createServer` 包裹 try-catch，证书加载失败时自动重试生成
-  - 修复 5：CORS 代理服务器同样包裹 try-catch，证书失败不影响主服务器
-- **Debug BAT 编码修复**：BAT 文件中的中文字符在 GBK 编码的 CMD 中变成乱码导致报错，已改为纯 ASCII 英文
-
-### 构建（Built）
-
-- 基底：v1.0.0 EXE (已知工作的 Node.js SEA 基底)
-- EXE 大小：86,799,872 bytes (~82.8 MB)
-- dist.version：`v1.0.4`
-- 下载地址：[UIH_AI_Base_PI-v1.0.4.exe](https://github.com/bingjian999/uih-ExcelV1/releases/download/v1.0.4/UIH_AI_Base_PI-v1.0.4.exe)
-
-### 验证
-
-- 本机测试：EXE 启动成功，证书验证通过，HTTPS 服务器正常运行
-- 证书验证逻辑：有效证书直接使用，无效证书自动删除并重新生成
-- `https.createServer` try-catch：即使证书加载失败也不会崩溃，会自动重试
+| 文件 | 修改内容 |
+|------|---------|
+| `src/_uih/pi-server.cjs` | 服务器日志中文化；spawn 修复（防止闪退）；心跳日志 |
+| `src/taskpane.html` | HTML 标题中文化 |
+| `package.json` | 版本号更新；BOM 修复 |
+| `dist.version` | 版本号更新 |
+| `release/UIH_AI_Base_PI-Debug.bat` | Debug 脚本版本号更新 |
 
 ---
 
-## [1.0.3] - 2026-06-25 (hotfix)
+## 构建流程
 
-### 修复（Fixed）
+完整构建命令序列：
+```bash
+npm run build              # Vite 构建 → dist/
+npm run uih:build:blob     # 打包 dist/ → build/dist.blob
+cp build/dist.blob dist.blob  # 复制到根目录
+node --experimental-sea-config sea-config.json  # 生成 SEA blob
+cp release/UIH_AI_Base_PI-v1.0.0.exe release/UIH_AI_Base_PI-v<VERSION>.exe
+npx postject release/UIH_AI_Base_PI-v<VERSION>.exe NODE_SEA_BLOB sea-prep.blob --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2 --overwrite
+```
 
-- **关键 Bug：其他电脑闪退**：在其他电脑上运行 EXE 时，由于环境差异（证书生成失败、端口占用、权限不足等），JS 异常导致进程崩溃，但控制台窗口关闭太快无法看到错误信息
-  - 修复 1：添加文件日志系统，所有 `console.log` / `console.error` 同时写入 `%LOCALAPPDATA%\UIH_AI_Base_PI\server.log`
-  - 修复 2：`uncaughtException` 和 `unhandledRejection` 处理器将错误写入日志文件
-  - 修复 3：提供 `UIH_AI_Base_PI-Debug.bat` 调试包装器，崩溃后窗口不关闭，显示错误信息和退出码
+## 未修改的功能性标识符（保持不变）
 
-### 新增（Added）
-
-- **文件日志系统**：`server.log` 记录所有启动信息、错误堆栈、运行状态
-- **调试启动器**：`UIH_AI_Base_PI-Debug.bat` — 双击运行，崩溃后暂停显示错误，不会闪退
-
-### 构建（Built）
-
-- 基底：v1.0.0 EXE (已知工作的 Node.js SEA 基底)
-- EXE 大小：86,798,336 bytes (~82.8 MB)
-- dist.version：`v1.0.3`
-- 下载地址：[UIH_AI_Base_PI-v1.0.3.exe](https://github.com/bingjian999/uih-ExcelV1/releases/download/v1.0.3/UIH_AI_Base_PI-v1.0.3.exe)
-
-### 验证
-
-- EXE 启动成功，server.log 正确写入
-- HTTPS 服务器 `https://localhost:3000/__status__` 返回 `{"ok": true}`
-- 日志文件包含完整的启动信息、Node.js 版本、EXE 路径
-
-### 诊断指南
-
-如果 v1.0.3 在其他电脑上仍然闪退：
-1. 使用 `UIH_AI_Base_PI-Debug.bat` 启动（窗口不会关闭）
-2. 查看 `%LOCALAPPDATA%\UIH_AI_Base_PI\server.log` 日志文件
-3. 将窗口截图和日志文件发送给开发人员
-
----
-
-## [1.0.2] - 2026-06-25 (hotfix)
-
-### 修复（Fixed）
-
-- **关键 Bug：EXE 闪退**：当 Excel 仍打开上一次运行生成的 sideload xlsx 文件时，`generateSideloadXlsx()` 尝试覆盖该文件触发 `EBUSY: resource busy or locked` 异常。该异常在 `setTimeout` 回调中抛出，未被捕获，导致整个进程崩溃
-  - 根因：`pi-server.cjs:1057` 使用固定文件名 `UIH_AI_Base_PI-sideload.xlsx`，被 Excel 锁定后无法覆盖
-  - 修复 1：sideload 文件名加入时间戳（`UIH_AI_Base_PI-sideload-{timestamp}.xlsx`），避免文件锁冲突
-  - 修复 2：`writeFileSync` 包裹 try-catch，失败时优雅降级而非崩溃
-  - 修复 3：`autoSideload` 调用包裹 try-catch，sideload 失败不影响服务器运行
-  - 修复 4：添加全局 `uncaughtException` / `unhandledRejection` 处理器，作为最后防线
-
-### 构建（Built）
-
-- 基底：v1.0.0 EXE (已知工作的 Node.js SEA 基底)
-- 注入方式：`postject --overwrite` 重新注入修复后的 sea-prep.blob
-- EXE 大小：86,797,312 bytes (~82.8 MB)
-- dist.version：`v1.0.2`
-- 下载地址：[UIH_AI_Base_PI-v1.0.2.exe](https://github.com/bingjian999/uih-ExcelV1/releases/download/v1.0.2/UIH_AI_Base_PI-v1.0.2.exe)
-
-### 验证
-
-- EXE 启动后稳定运行 13+ 秒无崩溃（v1.0.1 在同样条件下 1.5 秒后崩溃）
-- sideload 文件使用时间戳文件名，不再与 Excel 锁冲突
-- HTTPS 服务器 `https://localhost:3000/__status__` 返回 `{"ok": true}`
-- 全局异常处理器确保即使 sideload 失败，服务器仍继续运行
-
----
-
-## [1.0.1] - 2026-06-25 (hotfix)
-
-### 修复（Fixed）
-
-- **关键 Bug：taskpane 空白页**：Vite 打包后 `taskpane.html` 引用的资源路径写成 `/assets/v6/*.js`，但实际文件位于 `/assets/*.js`（无 `v6/` 子目录）。导致 ES module 404、bundle 永远不执行、加载项一直停在 loading 状态
-  - 受影响文件：`dist/src/taskpane.html` (12 处资源引用)
-  - 修复方法：批量替换 `/assets/v6/` → `/assets/`
-  - 影响范围：所有通过本地 HTTPS 模式（`https://localhost:3000`）加载 taskpane 的环境
-  - 验证：在浏览器打开 `https://localhost:3000/src/taskpane.html` 不再空白；F12 Console 不再报 404
-
-### 构建（Built）
-
-- **重新打包 EXE**：基于 v1.0.0 EXE 基底，使用 postject `--overwrite` 重新注入修复后的 sea-prep.blob
-  - EXE 大小：86,795,776 bytes (~82.8 MB)
-  - 内嵌 dist.blob：52 个文件，1,487,877 bytes (gzip)
-  - dist.version：`v1.0.1`
-  - 下载地址：[UIH_AI_Base_PI-v1.0.1.exe](https://github.com/bingjian999/uih-ExcelV1/releases/download/v1.0.1/UIH_AI_Base_PI-v1.0.1.exe)
-
-### 部署说明
-
-- **旧用户**（已在 v1.0.0）：
-  - 方式一（推荐）：下载新 EXE 直接替换旧 EXE，首次启动会自动覆盖 dist 目录
-  - 方式二（快速修复）：仅下载 `dist/src/taskpane.html`，覆盖 `C:\Users\bingjian.wang\AppData\Local\UIH_AI_Base_PI\dist\src\taskpane.html`
-- **新用户**：直接使用 `UIH_AI_Base_PI-v1.0.1.exe`，首次启动自动解压正确的 dist
-
-### 验证
-
-- EXE 启动成功：显示"联影AI_Base_PI — 本地启动器"，HTTPS 服务器在端口 3000 运行
-- 提取的 taskpane.html 中 `/assets/v6/` 引用数为 0（已修复）
-- 浏览器直接访问 `https://localhost:3000/src/taskpane.html` 看到完整 UI
-- Excel 加载项面板内点击"联影AI"按钮不再空白
-
----
-
-## [1.0.0] - 2026-06-21
-
-### 新增（Added）
-
-- **单文件 EXE 部署**：基于 Node.js 22 SEA + postject 注入，单文件 ~83 MB
-- **多模型 AI 接入**：支持 OpenAI / Anthropic / Google / OpenRouter / 自定义网关 / 本地 Ollama
-- **16 个内置 Excel 工具**：单元格读写、公式解释、Python 执行、扩展管理、备份恢复等
-- **20+ 斜杠命令**：斜杠驱动的会话式操作
-- **多会话 / 多标签页**：工作簿级会话持久化与恢复
-- **扩展机制**：受沙箱权限控制的小程序加载
-- **Python / tmux 桥接**：可在 Excel 任务窗格里直接跑本地 Python
-- **Agent Skills**：可加载文件系统 / 扩展目录下的 Skills
-- **零配置 Office 信任**：自动完成共享目录、注册表、自签证书三件套
-- **MOTW 自动清理**：绕过 SmartScreen 的"未知发布者"拦截
-- **5 种证书自动生成策略**：mkcert / openssl / Node.js / PowerShell / 内置证书
-- **UIH 品牌化**：图标、Group、按钮、DisplayName 全部从 pi-for-excel 替换为 UIH_AI
-- **完整中文文档**：用户手册、章节 7 详解、开发总结 3 份 HTML
-
-### 安全（Security）
-
-- 自签证书自动导入 `Cert:\LocalMachine\Root`
-- Excel 加载项清单自动签名
-- 嵌入资源（dist.blob）SHA-256 校验
-
-### 已知限制（Known Limitations）
-
-- 仅支持 Windows 10/11 x64
-- 卸载时需手动执行清理脚本（开发中）
-- 不支持 macOS / Linux（需替换 SEA 流程）
-- 不支持多用户同时在同一台机器使用不同模型配置
-
-### 致谢
-
-- 基于 [pi-for-excel](https://github.com/tmustier/pi-for-excel) v0.9.5-pre
-- 感谢联影内部测试团队的反馈
+- `src/app/metadata.ts` — `APP_NAME = "pi-for-excel"` (内部标识符)
+- `src/storage/init-app-storage.ts` — 数据库名 `"pi-for-excel"` (IndexedDB 名称)
+- `src/auth/proxy-validation.ts` — GitHub URL 链接
+- `src/manifest.xml` / `src/_uih/manifest.xml` — SupportUrl
+- `src/_uih/pi-server.cjs` / `src/pi-server.cjs` — `PI_DATA_DIR` 环境变量、`.pi-for-excel` 目录路径、注释
+- localStorage key `pi.onboarding.disclosure.acknowledged` — 已存用户的确认状态
