@@ -89,21 +89,21 @@ function describeWebSearchAvailability(args: {
   const { sessionEnabled, workbookEnabled, workbookLabel, hasWorkbook } = args;
 
   if (sessionEnabled && workbookEnabled && hasWorkbook) {
-    return `Session + workbook (${workbookLabel})`;
+    return `会话 + 工作簿 (${workbookLabel})`;
   }
 
   if (workbookEnabled && hasWorkbook) {
-    return `Workbook (${workbookLabel})`;
+    return `工作簿 (${workbookLabel})`;
   }
 
   if (sessionEnabled) {
-    return hasWorkbook ? "Session only" : "Session";
+    return hasWorkbook ? "仅会话" : "会话";
   }
 
-  return hasWorkbook ? "Off in all scopes" : "Off";
+  return hasWorkbook ? "所有范围已关闭" : "关闭";
 }
 
-const BRIDGE_SETUP_HINT = "Open Terminal · paste · press Enter · type y and Enter if prompted · leave open";
+const BRIDGE_SETUP_HINT = "打开终端 · 粘贴 · 按 Enter · 如提示输入 y 并按 Enter · 保持打开";
 
 function selectElementText(element: HTMLElement): void {
   const selection = window.getSelection();
@@ -130,7 +130,7 @@ function createBridgeSetupCommand(command: string): HTMLDivElement {
   copyButton.type = "button";
   copyButton.className = "pi-hub-bridge-setup__copy";
   copyButton.textContent = "📋";
-  copyButton.title = "Copy command";
+  copyButton.title = "复制命令";
   copyButton.addEventListener("click", () => {
     if (!navigator.clipboard?.writeText) {
       selectElementText(code);
@@ -218,14 +218,14 @@ export async function renderConnectionsTab(args: {
   surface.className = "pi-overlay-surface";
 
   const masterToggle = createToggleRow({
-    label: "External tools",
-    sublabel: "Allow Pi to search the web and call external services",
+    label: "外部工具",
+    sublabel: "允许联影AI 搜索网页和调用外部服务",
     checked: externalEnabled,
     onChange: (checked) => {
       void runMutation(
         () => setExternalToolsEnabled(settings, checked),
         "external-toggle",
-        `External tools ${checked ? "enabled" : "disabled"}`,
+        `外部工具已${checked ? "启用" : "禁用"}`,
       );
     },
   });
@@ -233,13 +233,13 @@ export async function renderConnectionsTab(args: {
   container.appendChild(surface);
 
   // ── Web search section ────────────────────────
-  container.appendChild(createSectionHeader({ label: "Web search" }));
+  container.appendChild(createSectionHeader({ label: "网页搜索" }));
 
   const webBadgeText = !webSearchEnabled
-    ? "Off"
+    ? "关闭"
     : apiKey
-      ? "Connected"
-      : (isApiKeyRequired(selectedProvider) ? "No API key" : "Ready");
+      ? "已连接"
+      : (isApiKeyRequired(selectedProvider) ? "无 API 密钥" : "就绪");
   const webBadgeTone = !webSearchEnabled
     ? "muted"
     : (apiKey || !isApiKeyRequired(selectedProvider) ? "ok" : "warn");
@@ -268,11 +268,11 @@ export async function renderConnectionsTab(args: {
     void runMutation(
       () => saveWebSearchProvider(settings, provider),
       "config",
-      `Web search provider set to ${WEB_SEARCH_PROVIDER_INFO[provider].title}`,
+      `网页搜索服务商已设为 ${WEB_SEARCH_PROVIDER_INFO[provider].title}`,
     );
   });
 
-  webCard.body.appendChild(createConfigRow("Provider", providerSelect));
+  webCard.body.appendChild(createConfigRow("服务商", providerSelect));
 
   // API key row
   const apiKeyInput = createConfigInput({
@@ -286,12 +286,12 @@ export async function renderConnectionsTab(args: {
 
   const apiKeyLabel = document.createElement("span");
   apiKeyLabel.className = "pi-item-card__config-label";
-  apiKeyLabel.textContent = "API key";
+  apiKeyLabel.textContent = "API 密钥";
 
   const apiKeyControls = document.createElement("div");
   apiKeyControls.className = "pi-hub-inline-row";
 
-  const validateBtn = createButton("Validate", {
+  const validateBtn = createButton("验证", {
     compact: true,
     onClick: () => {
       if (isBusy()) return;
@@ -300,7 +300,7 @@ export async function renderConnectionsTab(args: {
         try {
           const config = await loadWebSearchProviderConfig(settings);
           const testKey = key.length > 0 ? key : (getApiKeyForProvider(config) ?? "");
-          if (!testKey) { showToast("No API key to validate."); return; }
+          if (!testKey) { showToast("没有可验证的 API 密钥。"); return; }
           const proxyBaseUrl = await getEnabledProxyBaseUrl(settings);
           const result = await validateWebSearchApiKey({ provider: selectedProvider, apiKey: testKey, proxyBaseUrl });
           showToast(result.ok ? `✓ ${result.message}` : `✗ ${result.message}`);
@@ -311,30 +311,30 @@ export async function renderConnectionsTab(args: {
     },
   });
 
-  const saveKeyBtn = createButton("Save", {
+  const saveKeyBtn = createButton("保存", {
     primary: true,
     compact: true,
     onClick: () => {
       const key = apiKeyInput.value.trim();
-      if (!key) { showToast("Enter an API key first."); return; }
+      if (!key) { showToast("请先输入 API 密钥。"); return; }
       const formatWarning = checkApiKeyFormat(selectedProvider, key);
       void runMutation(
         () => saveWebSearchApiKey(settings, selectedProvider, key),
         "config",
         formatWarning
-          ? `⚠️ ${formatWarning} Key saved anyway — use Validate to test it.`
-          : `Saved ${providerInfo.apiKeyLabel}`,
+          ? `⚠️ ${formatWarning} 密钥已保存 — 请使用验证来测试。`
+          : `已保存 ${providerInfo.apiKeyLabel}`,
       );
     },
   });
 
-  const clearKeyBtn = createButton("Clear", {
+  const clearKeyBtn = createButton("清除", {
     compact: true,
     onClick: () => {
       void runMutation(
         () => clearWebSearchApiKey(settings, selectedProvider),
         "config",
-        `Cleared ${providerInfo.apiKeyLabel}`,
+        `已清除 ${providerInfo.apiKeyLabel}`,
       );
     },
   });
@@ -349,7 +349,7 @@ export async function renderConnectionsTab(args: {
     workbookLabel: workbookContext.workbookLabel,
     hasWorkbook: workbookId !== null,
   }));
-  webCard.body.appendChild(createConfigRow("Availability", availability));
+  webCard.body.appendChild(createConfigRow("可用性", availability));
 
   const scopeDetails = document.createElement("details");
   scopeDetails.className = "pi-hub-advanced-disclosure pi-hub-scope-disclosure";
@@ -359,17 +359,17 @@ export async function renderConnectionsTab(args: {
 
   const scopeSummary = document.createElement("summary");
   scopeSummary.className = "pi-hub-advanced-summary";
-  scopeSummary.textContent = "Scope controls";
+  scopeSummary.textContent = "范围控制";
 
   const scopeBody = document.createElement("div");
   scopeBody.className = "pi-hub-advanced-body";
 
   const sessionToggleRow = createToggleRow({
-    label: "Enable for this session",
+    label: "为此会话启用",
     checked: webSearchSessionEnabled,
     onChange: (checked) => {
       if (!sessionId) {
-        showToast("No active session");
+        showToast("没有活动会话");
         return;
       }
       void runMutation(async () => {
@@ -381,7 +381,7 @@ export async function renderConnectionsTab(args: {
           enabled: checked,
           knownIntegrationIds: INTEGRATION_IDS,
         });
-      }, "scope", `Web search ${checked ? "enabled" : "disabled"} for this session`);
+      }, "scope", `网页搜索已${checked ? "启用" : "禁用"}（此会话）`);
     },
   });
   sessionToggleRow.input.disabled = isBusy() || !sessionId;
@@ -389,12 +389,12 @@ export async function renderConnectionsTab(args: {
 
   const workbookToggleRow = createToggleRow({
     label: workbookId
-      ? `Enable for workbook (${workbookContext.workbookLabel})`
-      : "Workbook scope unavailable",
+      ? `为此工作簿启用 (${workbookContext.workbookLabel})`
+      : "工作簿范围不可用",
     checked: webSearchWorkbookEnabled,
     onChange: (checked) => {
       if (!workbookId) {
-        showToast("Workbook scope unavailable");
+        showToast("工作簿范围不可用");
         return;
       }
       void runMutation(async () => {
@@ -406,7 +406,7 @@ export async function renderConnectionsTab(args: {
           enabled: checked,
           knownIntegrationIds: INTEGRATION_IDS,
         });
-      }, "scope", `Web search ${checked ? "enabled" : "disabled"} for this workbook`);
+      }, "scope", `网页搜索已${checked ? "启用" : "禁用"}（此工作簿）`);
     },
   });
   workbookToggleRow.input.disabled = isBusy() || !workbookId;
@@ -429,8 +429,8 @@ export async function renderConnectionsTab(args: {
   const mcpAddVisible = { value: false };
 
   const mcpHeader = createSectionHeader({
-    label: "MCP servers",
-    actionLabel: "+ Add server",
+    label: "MCP 服务器",
+    actionLabel: "+ 添加服务器",
     onAction: () => {
       mcpAddVisible.value = !mcpAddVisible.value;
       mcpAddForm.hidden = !mcpAddVisible.value;
@@ -442,7 +442,7 @@ export async function renderConnectionsTab(args: {
   mcpList.className = "pi-hub-stack";
 
   if (mcpServers.length === 0) {
-    mcpList.appendChild(createEmptyInline(lucide(Zap), "No MCP servers configured.\nAdd one to connect external tools."));
+    mcpList.appendChild(createEmptyInline(lucide(Zap), "未配置 MCP 服务器。\n添加一个以连接外部工具。"));
   } else {
     for (const server of mcpServers) {
       mcpList.appendChild(renderMcpServerCard(server, settings, isBusy, runMutation));
@@ -451,16 +451,16 @@ export async function renderConnectionsTab(args: {
   container.appendChild(mcpList);
 
   // MCP add form (hidden by default)
-  const nameInput = createAddFormInput("Server name");
+  const nameInput = createAddFormInput("服务器名称");
   const urlInput = createAddFormInput("https://server-url/rpc");
-  const tokenInput = createAddFormInput("Bearer token (optional)");
+  const tokenInput = createAddFormInput("Bearer 令牌（可选）");
   tokenInput.type = "password";
 
   const addRow = createAddFormRow();
   addRow.append(nameInput, urlInput);
 
   const tokenRow = createAddFormRow();
-  tokenRow.append(tokenInput, createButton("Add", {
+  tokenRow.append(tokenInput, createButton("添加", {
     primary: true,
     compact: true,
     onClick: () => {
@@ -476,7 +476,7 @@ export async function renderConnectionsTab(args: {
         nameInput.value = "";
         urlInput.value = "";
         tokenInput.value = "";
-      }, "config", "Added MCP server");
+      }, "config", "已添加 MCP 服务器");
     },
   }));
 
@@ -489,7 +489,7 @@ export async function renderConnectionsTab(args: {
   const showTmux = true;
 
   if (showPython || showTmux) {
-    container.appendChild(createSectionHeader({ label: "Bridges" }));
+    container.appendChild(createSectionHeader({ label: "桥接" }));
 
     const bridgeList = document.createElement("div");
     bridgeList.className = "pi-hub-stack";
@@ -497,10 +497,10 @@ export async function renderConnectionsTab(args: {
     if (showPython) {
       bridgeList.appendChild(renderBridgeCard({
         icon: lucide(Terminal),
-        name: "Python bridge",
-        description: "Execute Python code in a local environment",
+        name: "Python 桥接",
+        description: "在本地环境中执行 Python 代码",
         settingKey: PYTHON_BRIDGE_URL_SETTING_KEY,
-        setupCommand: "npx pi-for-excel-python-bridge",
+        setupCommand: "npx uih-excel-python-bridge",
         defaultUrl: DEFAULT_PYTHON_BRIDGE_URL,
         placeholder: DEFAULT_PYTHON_BRIDGE_URL,
         currentUrl: effectivePythonUrl,
@@ -513,10 +513,10 @@ export async function renderConnectionsTab(args: {
     if (showTmux) {
       bridgeList.appendChild(renderBridgeCard({
         icon: lucide(Terminal),
-        name: "tmux bridge",
-        description: "Remote shell sessions via tmux",
+        name: "tmux 桥接",
+        description: "通过 tmux 进行远程 shell 会话",
         settingKey: TMUX_BRIDGE_URL_SETTING_KEY,
-        setupCommand: "npx pi-for-excel-tmux-bridge",
+        setupCommand: "npx uih-excel-tmux-bridge",
         defaultUrl: DEFAULT_TMUX_BRIDGE_URL,
         placeholder: DEFAULT_TMUX_BRIDGE_URL,
         currentUrl: effectiveTmuxUrl,
@@ -538,7 +538,7 @@ function renderMcpServerCard(
   isBusy: () => boolean,
   runMutation: (action: () => Promise<void>, reason: "toggle" | "scope" | "external-toggle" | "config", msg?: string) => Promise<void>,
 ): HTMLElement {
-  const toolLabel = server.enabled ? "Enabled" : "Disabled";
+  const toolLabel = server.enabled ? "已启用" : "已禁用";
   const card = createItemCard({
     icon: lucide(Zap),
     iconColor: "blue",
@@ -552,15 +552,15 @@ function renderMcpServerCard(
   card.body.appendChild(createConfigRow("URL", createConfigValue(server.url)));
 
   // Token
-  const tokenValue = server.token ? maskSecret(server.token) : "(none)";
-  card.body.appendChild(createConfigRow("Token", createConfigValue(tokenValue)));
+  const tokenValue = server.token ? maskSecret(server.token) : "（无）";
+  card.body.appendChild(createConfigRow("令牌", createConfigValue(tokenValue)));
 
   // Enabled toggle
   const enabledRow = document.createElement("div");
   enabledRow.className = "pi-item-card__config-row";
   const enabledLabel = document.createElement("span");
   enabledLabel.className = "pi-item-card__config-label";
-  enabledLabel.textContent = "Enabled";
+  enabledLabel.textContent = "已启用";
   const enabledToggle = createToggle({
     checked: server.enabled,
     onChange: (checked) => {
@@ -570,37 +570,37 @@ function renderMcpServerCard(
           s.id === server.id ? { ...s, enabled: checked } : s,
         );
         await saveMcpServers(settings, updated);
-      }, "config", `${server.name}: ${checked ? "enabled" : "disabled"}`);
+      }, "config", `${server.name}：已${checked ? "启用" : "禁用"}`);
     },
   });
   enabledRow.append(enabledLabel, enabledToggle.root);
   card.body.appendChild(enabledRow);
 
   // Actions
-  const testBtn = createButton("Test", {
+  const testBtn = createButton("测试", {
     compact: true,
     onClick: () => {
       if (isBusy()) return;
       void (async () => {
         try {
           const result = await probeMcpServer(server, settings);
-          const transport = result.proxied ? "proxy" : "direct";
-          showToast(`${server.name}: reachable (${result.toolCount} tool${result.toolCount === 1 ? "" : "s"}, ${transport})`);
+          const transport = result.proxied ? "代理" : "直连";
+          showToast(`${server.name}：可访问（${result.toolCount} 个工具，${transport}）`);
         } catch (err: unknown) {
-          showToast(`${server.name}: ${err instanceof Error ? err.message : String(err)}`);
+          showToast(`${server.name}：${err instanceof Error ? err.message : String(err)}`);
         }
       })();
     },
   });
 
-  const removeBtn = createButton("Remove", {
+  const removeBtn = createButton("移除", {
     danger: true,
     compact: true,
     onClick: () => {
       void runMutation(async () => {
         const servers = await loadMcpServers(settings);
         await saveMcpServers(settings, servers.filter((s) => s.id !== server.id));
-      }, "config", `Removed MCP server: ${server.name}`);
+      }, "config", `已移除 MCP 服务器：${server.name}`);
     },
   });
 
@@ -632,21 +632,21 @@ function renderBridgeCard(args: {
     expandable: true,
     expanded: !args.hasCustomUrl,
     badges: [args.hasCustomUrl
-      ? { text: "Configured", tone: "ok" as const }
-      : { text: "Default URL", tone: "muted" as const },
+      ? { text: "已配置", tone: "ok" as const }
+      : { text: "默认 URL", tone: "muted" as const },
     ],
   });
 
   const setupLabel = document.createElement("p");
   setupLabel.className = "pi-hub-bridge-setup__label";
-  setupLabel.textContent = "Quick setup";
+  setupLabel.textContent = "快速设置";
   card.body.append(setupLabel, createBridgeSetupCommand(args.setupCommand));
 
   const urlInput = createConfigInput({
     value: args.currentUrl,
     placeholder: args.placeholder,
   });
-  card.body.appendChild(createConfigRow("Bridge URL", urlInput));
+  card.body.appendChild(createConfigRow("桥接 URL", urlInput));
 
   const saveBridgeUrl = (clear: boolean): void => {
     const candidateUrl = clear ? "" : urlInput.value.trim();
@@ -656,7 +656,7 @@ function renderBridgeCard(args: {
       try {
         normalizedCandidateUrl = validateOfficeProxyUrl(candidateUrl);
       } catch (err: unknown) {
-        showToast(`Invalid URL: ${err instanceof Error ? err.message : String(err)}`);
+        showToast(`无效 URL：${err instanceof Error ? err.message : String(err)}`);
         return;
       }
     }
@@ -674,11 +674,11 @@ function renderBridgeCard(args: {
         await args.settings.set(args.settingKey, normalizedCandidateUrl);
       }
       dispatchExperimentalToolConfigChanged({ configKey: args.settingKey });
-    }, "config", useDefaultUrl ? `${args.name} URL set to default` : `${args.name} URL saved`);
+    }, "config", useDefaultUrl ? `${args.name} URL 已设为默认` : `${args.name} URL 已保存`);
   };
 
-  const saveBtn = createButton("Save", { compact: true, onClick: () => saveBridgeUrl(false) });
-  const clearBtn = createButton("Clear", { compact: true, onClick: () => saveBridgeUrl(true) });
+  const saveBtn = createButton("保存", { compact: true, onClick: () => saveBridgeUrl(false) });
+  const clearBtn = createButton("清除", { compact: true, onClick: () => saveBridgeUrl(true) });
   card.body.appendChild(createActionsRow(saveBtn, clearBtn));
 
   return card.root;
