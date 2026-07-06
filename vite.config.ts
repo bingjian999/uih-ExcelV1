@@ -306,7 +306,15 @@ export default defineConfig({
   esbuild: { target: "esnext" },
 
   resolve: {
-    alias: buildBrowserAliasMap(),
+    alias: [
+      // pi-ai 0.80.x moved getModels/getModel/streamSimple/complete/etc. from
+      // the main index to the /compat subpath. Redirect bare
+      // "@earendil-works/pi-ai" imports (including from pi-web-ui) to compat
+      // so all old exports resolve. Regex ensures /compat, /api/*, /oauth
+      // subpaths are NOT double-redirected.
+      { find: /^@earendil-works\/pi-ai$/, replacement: "@earendil-works/pi-ai/compat" },
+      ...Object.entries(buildBrowserAliasMap()).map(([find, replacement]) => ({ find, replacement })),
+    ],
     // Force a single `marked` instance so our safety patch
     // (installMarkedSafetyPatch) intercepts all .use() calls —
     // including markdown-block's. Without this, mini-lit bundles its
