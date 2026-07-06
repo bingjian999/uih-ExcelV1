@@ -2,6 +2,13 @@
 
 ## 版本历史
 
+### v1.3.0 (2026-07-06)
+- **Pi 栈升级**：`@earendil-works/pi-ai` 和 `pi-agent-core` 从 0.79.1 → 0.80.3
+- **compat 别名**：在 `vite.config.ts` 添加正则别名，将 `@earendil-works/pi-ai` 重定向到 `/compat` 子路径，解决 pi-web-ui 0.75.3 的内部导入兼容性
+- **代理端口随机回退**：`pi-server.cjs` 和 `scripts/cors-proxy-server.mjs` 新增 EADDRINUSE → listen(0) 回退机制，端口 3003 被占用时自动选择随机可用端口
+- **inject-sea 脚本**：添加 `overwrite: true` 选项，支持重复注入同一基础 EXE
+- **README 更新**：版本徽章更新至 1.3.0，新增 Pi 栈 0.80.3 和代理端口回退特性描述
+
 ### v1.2.2 (2026-07-02)
 - 替换所有用户可见的 `pi-for-excel-proxy` → `uih-excel-proxy`
 - 替换 `pi-for-excel-python-bridge` → `uih-excel-python-bridge`
