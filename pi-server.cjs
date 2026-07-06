@@ -216,8 +216,10 @@ const MIME = {
 };
 
 // CORS proxy port (must match frontend default: https://localhost:3003)
-const PROXY_PORT = Number.parseInt(process.env.PI_PROXY_PORT || "3003", 10);
-const PROXY_ORIGIN = `https://${HOST}:${PROXY_PORT}`;
+const DEFAULT_PROXY_PORT = 3003;
+const hasExplicitProxyPort = typeof process.env.PI_PROXY_PORT === "string" && process.env.PI_PROXY_PORT.trim().length > 0;
+let PROXY_PORT = Number.parseInt(process.env.PI_PROXY_PORT || String(DEFAULT_PROXY_PORT), 10);
+let PROXY_ORIGIN = `https://${HOST}:${PROXY_PORT}`;
 
 // ---------------------------------------------------------------------------
 // SSRF protection (ported from proxy-target-policy.mjs)
@@ -1466,18 +1468,43 @@ async function main() {
     proxyServer = null;
   }
   if (proxyServer) {
-    proxyServer.on("error", (e) => {
-      if (e.code === "EADDRINUSE") {
-        warn(`CORS 代理端口 ${PROXY_PORT} 已被占用 (可能有其他代理正在运行)。`);
-        warn(`The "Proxy not running" banner may appear. Close the other process and re-run.`);
-      } else {
-        warn("CORS 代理错误:", e.message);
-      }
-      // Don't exit — the main server is still functional
-    });
-    proxyServer.listen(PROXY_PORT, "::", () => {
-      log(`CORS 代理已启动: ${PROXY_ORIGIN} (消除 "Proxy not running" 提示)`);
-    });
+    // Port fallback: if default port 3003 is in use and user didn't explicitly
+    // set PI_PROXY_PORT, try a random available port (listen(0)).
+    const listenProxy = (port) => {
+      let cleanedUp = false;
+      const cleanup = () => {
+        if (cleanedUp) return;
+        cleanedUp = true;
+        proxyServer.off("error", onError);
+        proxyServer.off("listening", onListening);
+      };
+      const onError = (err) => {
+        cleanup();
+        if (err?.code === "EADDRINUSE" && !hasExplicitProxyPort && port === DEFAULT_PROXY_PORT) {
+          warn(`CORS 代理端口 ${DEFAULT_PROXY_PORT} 已被占用，正在尝试随机可用端口...`);
+          listenProxy(0);
+          return;
+        }
+        const message = err instanceof Error ? err.message : String(err);
+        warn(`CORS 代理监听失败: ${message}`);
+        // Don't exit — the main server is still functional
+      };
+      const onListening = () => {
+        cleanup();
+        const addr = proxyServer.address();
+        const actualPort = (addr && typeof addr === "object") ? addr.port : port;
+        if (actualPort !== PROXY_PORT) {
+          PROXY_PORT = actualPort;
+          PROXY_ORIGIN = `https://${HOST}:${PROXY_PORT}`;
+          warn(`CORS 代理已回退到端口 ${PROXY_PORT}。请在 /settings → 代理 URL 中更新为 ${PROXY_ORIGIN}`);
+        }
+        log(`CORS 代理已启动: ${PROXY_ORIGIN} (消除 "Proxy not running" 提示)`);
+      };
+      proxyServer.once("error", onError);
+      proxyServer.once("listening", onListening);
+      proxyServer.listen(port, "::");
+    };
+    listenProxy(PROXY_PORT);
   }
 }
 
