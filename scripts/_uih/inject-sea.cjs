@@ -19,6 +19,7 @@ const NODE_SEA_FUSE = "NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2";
     console.log("[inject] injecting into:", exe);
     await inject(exe, "NODE_SEA_BLOB", blob, {
       sentinelFuse: NODE_SEA_FUSE,
+      overwrite: true,
     });
     console.log("[inject] OK — SEA blob injected");
     console.log("[inject] final exe size:", fs.statSync(exe).size);
