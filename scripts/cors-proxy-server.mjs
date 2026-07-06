@@ -43,7 +43,20 @@ if (useHttps && useHttp) {
 }
 
 const HOST = process.env.HOST || (useHttps ? "localhost" : "127.0.0.1");
-const PORT = Number.parseInt(process.env.PORT || "3003", 10);
+const DEFAULT_PORT = 3003;
+const hasExplicitPort = typeof process.env.PORT === "string" && process.env.PORT.trim().length > 0;
+
+function parsePort(rawPort) {
+  const port = Number.parseInt(rawPort, 10);
+  if (!Number.isInteger(port) || port < 0 || port > 65535) {
+    console.error(`[pi-for-excel] Invalid PORT: ${rawPort}`);
+    console.error("[pi-for-excel] Expected an integer from 0 to 65535.");
+    process.exit(1);
+  }
+  return port;
+}
+
+const PORT = hasExplicitPort ? parsePort(process.env.PORT) : DEFAULT_PORT;
 
 const rootDir = path.resolve(process.cwd());
 const keyPath = path.join(rootDir, "key.pem");
@@ -441,10 +454,22 @@ const server = (() => {
   );
 })();
 
-server.listen(PORT, HOST, () => {
+function getListeningPort(fallbackPort) {
+  const address = server.address();
+  if (address && typeof address !== "string") {
+    return address.port;
+  }
+  return fallbackPort;
+}
+
+function logStartup(listeningPort) {
   const scheme = useHttps ? "https" : "http";
-  console.log(`[pi-for-excel] CORS proxy listening on ${scheme}://${HOST}:${PORT}`);
-  console.log(`[pi-for-excel] Format: ${scheme}://${HOST}:${PORT}/?url=<target-url>`);
+  const proxyUrl = `${scheme}://${HOST}:${listeningPort}`;
+  console.log(`[pi-for-excel] CORS proxy listening on ${proxyUrl}`);
+  console.log(`[pi-for-excel] Format: ${proxyUrl}/?url=<target-url>`);
+  if (listeningPort !== DEFAULT_PORT) {
+    console.log(`[pi-for-excel] Update Pi for Excel /settings → Proxy URL to ${proxyUrl}`);
+  }
   console.log(`[pi-for-excel] Allowed origins: ${Array.from(allowedOrigins).join(", ")}`);
 
   if (allowAllTargetHosts) {
@@ -473,4 +498,40 @@ server.listen(PORT, HOST, () => {
   if (strictTargetResolution) {
     console.log("[pi-for-excel] Strict DNS resolution enabled (STRICT_TARGET_RESOLUTION=1)");
   }
-});
+}
+
+function listen(port) {
+  let cleanedUp = false;
+  const cleanup = () => {
+    if (cleanedUp) return;
+    cleanedUp = true;
+    server.off("error", onError);
+    server.off("listening", onListening);
+  };
+
+  const onError = (err) => {
+    cleanup();
+    if (err?.code === "EADDRINUSE" && !hasExplicitPort && port === DEFAULT_PORT) {
+      console.warn(`[pi-for-excel] Port ${DEFAULT_PORT} is already in use; choosing a random available port instead.`);
+      listen(0);
+      return;
+    }
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(`[pi-for-excel] Failed to listen on ${HOST}:${port}: ${message}`);
+    if (hasExplicitPort) {
+      console.error("[pi-for-excel] Choose a different port with PORT=0 (random) or PORT=<port>.");
+    }
+    process.exit(1);
+  };
+
+  const onListening = () => {
+    cleanup();
+    logStartup(getListeningPort(port));
+  };
+
+  server.once("error", onError);
+  server.once("listening", onListening);
+  server.listen(port, HOST);
+}
+
+listen(PORT);
