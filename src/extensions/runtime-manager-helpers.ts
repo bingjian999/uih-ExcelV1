@@ -1,11 +1,12 @@
-import type {
-  Api,
-  AssistantMessage,
-  Message,
-  Model,
-  Usage,
-} from "@earendil-works/pi-ai";
-import { getModels, getProviders } from "@earendil-works/pi-ai";
+import {
+  getModels,
+  getProviders,
+  type Api,
+  type AssistantMessage,
+  type Message,
+  type Model,
+  type Usage,
+} from "@earendil-works/pi-ai/compat";
 
 import type { HttpRequestOptions } from "../commands/extension-api.js";
 import { isRecord } from "../utils/type-guards.js";
