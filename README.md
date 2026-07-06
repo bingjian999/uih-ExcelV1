@@ -4,7 +4,7 @@
 > 单文件 EXE 即可在 Windows 上提供"侧边栏 AI + 多模型接入 + Office 加载项零配置部署"能力。
 
 [![Status](https://img.shields.io/badge/status-stable-brightgreen)](#)
-[![Version](https://img.shields.io/badge/version-1.0.0-blue)](#)
+[![Version](https://img.shields.io/badge/version-1.3.0-blue)](#)
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11%20x64-blue)](#)
 [![Runtime](https://img.shields.io/badge/runtime-Node.js%2022%20SEA-orange)](#)
 [![License](https://img.shields.io/badge/license-MIT-yellow)](#LICENSE)
@@ -40,6 +40,8 @@
 | 证书管理 | 用户自备 mkcert | 自动尝试 mkcert / openssl / Node.js / PowerShell / 内置证书 |
 | Office 信任 | 手动配置共享目录 | 自动创建 `\\<host>\UIH_Catalog$` + 注册表 |
 | MOTW 清理 | 无 | 启动时递归删除 Zone.Identifier |
+| Pi 栈版本 | 0.80.3 | 0.80.3（通过 compat 别名兼容 pi-web-ui 0.75.3） |
+| 代理端口回退 | 有（独立代理脚本） | 有（EXE 内联代理 + 独立脚本双重支持） |
 | 品牌 | pi-for-excel | UIH_AI（图标、Group、按钮均已替换） |
 | 文档 | 英文 | 全中文 + 详细章节拆分 |
 
@@ -49,6 +51,8 @@
 
 - **单文件 EXE**：Node.js 22 SEA 打包 + postject 注入，零外部依赖。
 - **多模型 AI 接入**：支持 OpenAI / Anthropic / Google / OpenRouter / 自定义网关 / 本地 Ollama，已实现代理直连。
+- **Pi 栈 0.80.3**：升级至最新 pi-ai / pi-agent-core，通过 Vite 别名兼容 pi-web-ui 旧版导入。
+- **代理端口随机回退**：CORS 代理端口 3003 被占用时自动回退到随机可用端口，避免启动失败。
 - **16 个内置 Excel 工具**：单元格读写、公式解释、Python 执行、扩展管理、备份恢复等。
 - **20+ 斜杠命令**：斜杠驱动的会话式操作。
 - **多会话/多标签页**：工作簿级会话持久化与恢复。
