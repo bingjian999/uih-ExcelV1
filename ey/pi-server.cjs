@@ -521,9 +521,11 @@ function isValidPemCert(certPath, keyPath) {
 function trustCert() {
   // Import the self-signed cert into the Windows Trusted Root store
   // so Excel/Office will trust HTTPS connections to localhost.
-  // Uses PowerShell Import-Certificate — works on any Windows with PowerShell.
+  // Tries multiple methods: PowerShell LocalMachine → PowerShell CurrentUser → certutil.
+
+  // Method 1: PowerShell LocalMachine (needs admin)
   try {
-    log("正在将证书安装到 Windows 受信任根证书存储...");
+    log("正在将证书安装到 Windows 受信任根证书存储 (LocalMachine)...");
     const ps = [
       "$certPath = '" + CERT_PATH.replace(/\\/g, "\\") + "'",
       "$store = New-Object System.Security.Cryptography.X509Certificates.X509Store('Root','LocalMachine')",
@@ -533,13 +535,18 @@ function trustCert() {
       "if (-not $existing) { $store.Add($cert); Write-Output 'INSTALLED' } else { Write-Output 'ALREADY' }",
       "$store.Close()",
     ].join("\n");
-    const r = spawnSync("powershell", ["-NoProfile", "-NonInteractive", "-Command", ps], { encoding: "utf8", shell: true, timeout: 15000 });
-    logToFile("trustCert output: " + (r.stdout || "").trim() + " stderr: " + (r.stderr || "").trim());
+    const r = spawnSync("powershell", ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-Command", ps], { encoding: "utf8", shell: true, timeout: 15000 });
+    logToFile("trustCert LocalMachine output: " + (r.stdout || "").trim() + " stderr: " + (r.stderr || "").trim());
     if (r.stdout && (r.stdout.includes("INSTALLED") || r.stdout.includes("ALREADY"))) {
-      log("证书已安装到受信任根证书存储。");
+      log("证书已安装到 LocalMachine 受信任根证书存储。");
       return true;
     }
-    // Fallback: try CurrentUser store (doesn't need admin)
+  } catch (e) {
+    logToFile("trustCert LocalMachine failed: " + e.message);
+  }
+
+  // Method 2: PowerShell CurrentUser (doesn't need admin)
+  try {
     log("LocalMachine 存储写入失败，尝试 CurrentUser 存储...");
     const ps2 = [
       "$certPath = '" + CERT_PATH.replace(/\\/g, "\\") + "'",
@@ -550,24 +557,122 @@ function trustCert() {
       "if (-not $existing) { $store.Add($cert); Write-Output 'INSTALLED' } else { Write-Output 'ALREADY' }",
       "$store.Close()",
     ].join("\n");
-    const r2 = spawnSync("powershell", ["-NoProfile", "-NonInteractive", "-Command", ps2], { encoding: "utf8", shell: true, timeout: 15000 });
+    const r2 = spawnSync("powershell", ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-Command", ps2], { encoding: "utf8", shell: true, timeout: 15000 });
     logToFile("trustCert CurrentUser output: " + (r2.stdout || "").trim() + " stderr: " + (r2.stderr || "").trim());
     if (r2.stdout && (r2.stdout.includes("INSTALLED") || r2.stdout.includes("ALREADY"))) {
       log("证书已安装到 CurrentUser 受信任根证书存储。");
       return true;
     }
   } catch (e) {
-    logToFile("trustCert failed: " + e.message);
+    logToFile("trustCert CurrentUser failed: " + e.message);
   }
+
+  // Method 3: certutil (available on all Windows machines, no PowerShell needed)
+  try {
+    log("PowerShell 方式失败，尝试 certutil...");
+    const r3 = spawnSync("certutil", ["-user", "-addstore", "Root", CERT_PATH], { encoding: "utf8", shell: true, timeout: 15000 });
+    logToFile("trustCert certutil output: " + (r3.stdout || "").trim() + " stderr: " + (r3.stderr || "").trim());
+    if (r3.status === 0) {
+      log("证书已通过 certutil 安装到受信任根证书存储。");
+      return true;
+    }
+  } catch (e) {
+    logToFile("trustCert certutil failed: " + e.message);
+  }
+
+  // Method 4: certutil with -f (force, for CurrentUser)
+  try {
+    log("尝试 certutil -f...");
+    const r4 = spawnSync("certutil", ["-f", "-user", "-addstore", "Root", CERT_PATH], { encoding: "utf8", shell: true, timeout: 15000 });
+    logToFile("trustCert certutil -f output: " + (r4.stdout || "").trim() + " stderr: " + (r4.stderr || "").trim());
+    if (r4.status === 0) {
+      log("证书已通过 certutil -f 安装到受信任根证书存储。");
+      return true;
+    }
+  } catch (e) {
+    logToFile("trustCert certutil -f failed: " + e.message);
+  }
+
+  // All automatic methods failed — generate a manual install script
+  warn("========================================");
+  warn("  证书自动安装失败！");
+  warn("  请以管理员身份运行以下脚本：");
+  warn("  " + path.join(APP_DIR, "install-cert.bat"));
+  warn("  然后重新启动本程序。");
+  warn("========================================");
+  generateCertInstallScript();
   return false;
+}
+
+function generateCertInstallScript() {
+  try {
+    const script = `@echo off
+chcp 65001 >nul 2>&1
+echo ============================================
+echo   安永AI_Base - 证书安装工具
+echo ============================================
+echo.
+
+echo 正在安装 HTTPS 证书到受信任根证书存储...
+echo.
+
+echo [1/3] 尝试 certutil (CurrentUser)...
+certutil -user -addstore Root "${CERT_PATH.replace(/\//g, "\\")}"
+if %errorlevel% == 0 (
+    echo.
+    echo [OK] 证书已安装到 CurrentUser 受信任根证书存储。
+    goto :success
+)
+
+echo.
+echo [2/3] 尝试 certutil (LocalMachine, 需要管理员权限)...
+certutil -addstore Root "${CERT_PATH.replace(/\//g, "\\")}"
+if %errorlevel% == 0 (
+    echo.
+    echo [OK] 证书已安装到 LocalMachine 受信任根证书存储。
+    goto :success
+)
+
+echo.
+echo [3/3] 尝试 PowerShell...
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$certPath = '${CERT_PATH.replace(/\\/g, "\\")}'; $store = New-Object System.Security.Cryptography.X509Certificates.X509Store('Root','LocalMachine'); $store.Open('ReadWrite'); $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($certPath); $existing = $store.Certificates | Where-Object { $_.Thumbprint -eq $cert.Thumbprint }; if (-not $existing) { $store.Add($cert) }; $store.Close()"
+if %errorlevel% == 0 (
+    echo.
+    echo [OK] 证书已通过 PowerShell 安装。
+    goto :success
+)
+
+echo.
+echo ============================================
+echo   证书安装失败！
+echo   请右键此文件 → 以管理员身份运行
+echo ============================================
+pause
+exit /b 1
+
+:success
+echo.
+echo ============================================
+echo   证书安装成功！
+echo   请重新运行 EY_AI_Base-v1.0.0.exe
+echo ============================================
+pause
+exit /b 0
+`;
+    const scriptPath = path.join(APP_DIR, "install-cert.bat");
+    fs.writeFileSync(scriptPath, script, "ascii");
+    log("已生成证书安装脚本: " + scriptPath);
+  } catch (e) {
+    logToFile("generateCertInstallScript failed: " + e.message);
+  }
 }
 
 function ensureCerts() {
   if (fs.existsSync(KEY_PATH) && fs.existsSync(CERT_PATH)) {
     if (isValidPemCert(CERT_PATH, KEY_PATH)) {
       log("使用现有 HTTPS 证书:", CERT_PATH);
-      trustCert();
-      return { ok: true, trusted: true, method: "existing" };
+      const trusted = trustCert();
+      return { ok: true, trusted, method: "existing" };
     } else {
       warn("现有证书文件无效，正在重新生成...");
       try { fs.unlinkSync(KEY_PATH); } catch {}
@@ -577,8 +682,8 @@ function ensureCerts() {
   fs.mkdirSync(CERT_DIR, { recursive: true });
   if (tryEmbeddedCerts()) {
     log("使用内嵌的 HTTPS 证书。");
-    trustCert();
-    return { ok: true, trusted: true, method: "embedded" };
+    const trusted = trustCert();
+    return { ok: true, trusted, method: "embedded" };
   }
   log("正在为", HOST, "配置可信 HTTPS 证书");
   if (tryMkcert()) {
@@ -587,7 +692,8 @@ function ensureCerts() {
   }
   if (tryOpenssl()) {
     warn("证书已通过 openssl 创建（自签名），正在安装到信任存储...");
-    if (trustCert()) {
+    const trusted = trustCert();
+    if (trusted) {
       log("自签名证书已安装到受信任根证书存储。");
       return { ok: true, trusted: true, method: "openssl" };
     }
@@ -596,7 +702,8 @@ function ensureCerts() {
   }
   if (tryPowerShellCert()) {
     warn("证书已通过 PowerShell 创建（自签名），正在安装到信任存储...");
-    if (trustCert()) {
+    const trusted = trustCert();
+    if (trusted) {
       log("自签名证书已安装到受信任根证书存储。");
       return { ok: true, trusted: true, method: "powershell" };
     }
@@ -605,7 +712,8 @@ function ensureCerts() {
   }
   if (tryNodeCryptoCert()) {
     warn("证书已通过 Node.js/PowerShell 创建（自签名），正在安装到信任存储...");
-    if (trustCert()) {
+    const trusted = trustCert();
+    if (trusted) {
       log("自签名证书已安装到受信任根证书存储。");
       return { ok: true, trusted: true, method: "nodecrypto" };
     }
@@ -1439,6 +1547,19 @@ async function main() {
   server.listen(PORT, "::", () => {
     printInstructions(manifestFile, certInfo, localModels);
     // Auto-sideload: register manifest + launch Excel with the add-in
+    // Only auto-sideload if the certificate is trusted — otherwise Excel
+    // will show "content blocked" errors and the user experience is bad.
+    if (!certInfo.trusted) {
+      warn("");
+      warn("========================================");
+      warn("  证书未被信任，已跳过 Excel 自动启动。");
+      warn("  请以管理员身份运行以下脚本安装证书：");
+      warn("  " + path.join(APP_DIR, "install-cert.bat"));
+      warn("  安装成功后重新运行本程序。");
+      warn("========================================");
+      warn("");
+      return;
+    }
     // Give the server a brief moment to be fully ready before launching Excel
     setTimeout(() => {
       try {
