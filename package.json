@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.104.0",
-    "@earendil-works/pi-agent-core": "0.80.3",
+    "@earendil-works/pi-agent-core": "0.80.6",
     "@earendil-works/pi-ai": "0.80.3",
     "@earendil-works/pi-web-ui": "0.75.3",
     "@rolldown/pluginutils": "^1.0.1",
